@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JpMusicTagger.CDJapan\JpMusicTagger.CDJapan.csproj" />
+    <ProjectReference Include="..\JpMusicTagger.Romaniser\JpMusicTagger.Romaniser.csproj" />
+    <ProjectReference Include="..\JpMusicTagger.SongMetadata\JpMusicTagger.Tags.csproj" />
+    <ProjectReference Include="..\JpMusicTagger.VGMDB\JpMusicTagger.VGMDB.csproj" />
+  </ItemGroup>
+
+</Project>
