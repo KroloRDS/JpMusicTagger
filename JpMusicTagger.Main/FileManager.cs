@@ -4,7 +4,7 @@ namespace JpMusicTagger.Main;
 
 public static class FileManager
 {
-	public static void RenameFolder(string path, string catalogNumber)
+	public static async Task RenameFolder(string path, string catalogNumber)
 	{
 		if (string.IsNullOrEmpty(catalogNumber)) return;
 
@@ -21,11 +21,11 @@ public static class FileManager
 			var msg = $"Failed to rename folder: {path} with prefix {prefix}";
 			var artist = info?.Parent?.Name ?? string.Empty;
 			var album = info?.Name ?? string.Empty;
-			Logger.Log(msg, artist, album);
+			await Logger.Log(msg, artist, album);
 		}
 	}
 
-	public static void RenameFile(string path, SongTags tags)
+	public static async Task RenameFile(string path, SongTags tags)
 	{
 		var newName = GetNewFileName(tags);
 		try
@@ -37,7 +37,7 @@ public static class FileManager
 		{
 			var artist = Directory.GetParent(path)?.Parent?.Name ?? string.Empty;
 			var msg = $"Failed to rename: {path} to {newName}";
-			Logger.Log(msg, artist, tags.Album.Name);
+			await Logger.Log(msg, artist, tags.Album.Name);
 		}
 	}
 

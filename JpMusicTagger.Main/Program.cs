@@ -8,12 +8,16 @@ await Process();
 static async Task Process()
 {
 	var consoleArgs = Environment.GetCommandLineArgs();
-	var entryPath = consoleArgs.Length > 1 ? consoleArgs[1] :
-		Path.GetDirectoryName(consoleArgs[0]);
+	var entryPath = Path.GetDirectoryName(consoleArgs[0]);
+	if (consoleArgs.Length > 1)
+	{
+		entryPath = consoleArgs[1];
+		Logger.SetPath(entryPath);
+	}
 
 	if (!Directory.Exists(entryPath))
 	{
-		Logger.Log($"Directory {entryPath} does not exist");
+		await Logger.Log($"Directory {entryPath} does not exist");
 		return;
 	}
 
@@ -34,14 +38,14 @@ static async Task ProcessAlbum(string artist, string path)
 	
 	if (songs is null || !songs.Any())
 	{
-		Logger.Log("Failed to get album data", album, artist);
+		await Logger.Log("Failed to get album data", album, artist);
 		return;
 	}
 
 	var songFiles = DirectoryMatcher.Match(songs, path);
 	if (songFiles is null || !songFiles.Any())
 	{
-		Logger.Log("Album data mismatch", album, artist);
+		await Logger.Log("Album data mismatch", album, artist);
 		return;
 	}
 
@@ -49,10 +53,10 @@ static async Task ProcessAlbum(string artist, string path)
 	{
 		song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
 		TagManager.Write(song.Path, song.Tags);
-		FileManager.RenameFile(song.Path, song.Tags);
+		await FileManager.RenameFile(song.Path, song.Tags);
 	}
 
-	FileManager.RenameFolder(path, songs.First().Album.CatalogNumber);
+	await FileManager.RenameFolder(path, songs.First().Album.CatalogNumber);
 }
 
 static async Task<IEnumerable<SongTags>> GetTags(string album)
