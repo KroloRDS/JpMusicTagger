@@ -5,7 +5,7 @@ using JpMusicTagger.VGMDB;
 
 await Process();
 
-async Task Process()
+static async Task Process()
 {
 	var consoleArgs = Environment.GetCommandLineArgs();
 	var entryPath = consoleArgs.Length > 1 ? consoleArgs[1] :
@@ -13,40 +13,35 @@ async Task Process()
 
 	if (!Directory.Exists(entryPath))
 	{
-		Console.WriteLine($"ERROR: Directory {entryPath} does not exist.");
+		Logger.Log($"Directory {entryPath} does not exist");
 		return;
 	}
 
-	foreach (var dir in Directory.GetDirectories(entryPath))
+	foreach (var artistDir in Directory.GetDirectories(entryPath))
 	{
-		await ProcessArtist(dir);
+		var artist = Path.GetFileNameWithoutExtension(artistDir);
+		foreach (var albumDir in Directory.GetDirectories(artistDir))
+		{
+			await ProcessAlbum(artist, albumDir);
+		}
 	}
 }
 
-async Task ProcessArtist(string path)
-{
-	var artist = Path.GetFileNameWithoutExtension(path);
-	foreach (var dir in Directory.GetDirectories(path))
-	{
-		await ProcessAlbum(artist, dir);
-	}
-}
-
-async Task ProcessAlbum(string artist, string path)
+static async Task ProcessAlbum(string artist, string path)
 {
 	var album = Path.GetFileNameWithoutExtension(path);
 	var songs = await GetTags(album);
 	
 	if (songs is null || !songs.Any())
 	{
-		Logger.Log(album, artist, "Failed to get album data");
+		Logger.Log("Failed to get album data", album, artist);
 		return;
 	}
 
 	var songFiles = DirectoryMatcher.Match(songs, path);
 	if (songFiles is null || !songFiles.Any())
 	{
-		Logger.Log(album, artist, "Album data mismatch");
+		Logger.Log("Album data mismatch", album, artist);
 		return;
 	}
 
@@ -54,9 +49,10 @@ async Task ProcessAlbum(string artist, string path)
 	{
 		song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
 		TagManager.Write(song.Path, song.Tags);
-		RenameFile();
+		FileManager.RenameFile(song.Path, song.Tags);
 	}
-	RenameFolder();
+
+	FileManager.RenameFolder(path, songs.First().Album.CatalogNumber);
 }
 
 static async Task<IEnumerable<SongTags>> GetTags(string album)
@@ -66,18 +62,4 @@ static async Task<IEnumerable<SongTags>> GetTags(string album)
 		songs = await CdJapanScrapper.GetTags(album);
 
 	return songs;
-}
-
-void RenameFile(string file)
-{
-	var fileInfo = new FileInfo(file);
-	try
-	{
-		fileInfo.MoveTo(fileInfo.Directory!.FullName + "\\" + romanised);
-	}
-	catch
-	{
-		log += "ERROR when renaming to: " + romanised;
-	}
-	log += file + " => " + romanised + "\n";
 }
