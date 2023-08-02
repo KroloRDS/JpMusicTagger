@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.Romaniser", "JpMusicTagger.Romaniser\JpMusicTagger.Romaniser.csproj", "{3D0FD814-6AE9-4CE0-B2E0-E0AC7939AE36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.Romanising", "JpMusicTagger.Romanising\JpMusicTagger.Romanising.csproj", "{3D0FD814-6AE9-4CE0-B2E0-E0AC7939AE36}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.Main", "JpMusicTagger.Main\JpMusicTagger.Main.csproj", "{0AA50248-F5BB-42DC-A805-FFFF7CA1D320}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JpMusicTagger.CDJapan", "JpMusicTagger.CDJapan\JpMusicTagger.CDJapan.csproj", "{6ED2CAD2-8FA1-43BB-9E56-0272185983FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.CDJapan", "JpMusicTagger.CDJapan\JpMusicTagger.CDJapan.csproj", "{6ED2CAD2-8FA1-43BB-9E56-0272185983FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JpMusicTagger.VGMDB", "JpMusicTagger.VGMDB\JpMusicTagger.VGMDB.csproj", "{2F210B87-F1A6-4B3E-9B0A-883DF39C4A54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.VGMDB", "JpMusicTagger.VGMDB\JpMusicTagger.VGMDB.csproj", "{2F210B87-F1A6-4B3E-9B0A-883DF39C4A54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JpMusicTagger.Tags", "JpMusicTagger.SongMetadata\JpMusicTagger.Tags.csproj", "{CD41A57F-8EBB-4DBF-92F5-E422B5AB86FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.Tags", "JpMusicTagger.SongMetadata\JpMusicTagger.Tags.csproj", "{CD41A57F-8EBB-4DBF-92F5-E422B5AB86FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JpMusicTagger.Logging", "JpMusicTagger.Logging\JpMusicTagger.Logging.csproj", "{ED85A9C1-8FA5-4AF4-91EC-BDDF8CDB6026}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{CD41A57F-8EBB-4DBF-92F5-E422B5AB86FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD41A57F-8EBB-4DBF-92F5-E422B5AB86FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD41A57F-8EBB-4DBF-92F5-E422B5AB86FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED85A9C1-8FA5-4AF4-91EC-BDDF8CDB6026}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED85A9C1-8FA5-4AF4-91EC-BDDF8CDB6026}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED85A9C1-8FA5-4AF4-91EC-BDDF8CDB6026}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED85A9C1-8FA5-4AF4-91EC-BDDF8CDB6026}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

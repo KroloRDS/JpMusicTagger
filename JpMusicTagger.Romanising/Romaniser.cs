@@ -1,6 +1,6 @@
 ﻿using Kawazu;
 
-namespace JpMusicTagger.Romaniser;
+namespace JpMusicTagger.Romanising;
 
 public static class Romaniser
 {
@@ -8,8 +8,7 @@ public static class Romaniser
 
 	public static async Task<string> Convert(string input)
 	{
-		var output = await _converter.Convert(
-			input, To.Romaji, Mode.Spaced, RomajiSystem.Nippon);
-		return output;
+		var output = await _converter.Convert(input, To.Romaji, Mode.Spaced);
+		return output.Trim();
 	}
 }

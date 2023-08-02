@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -10,6 +10,14 @@
     <PackageReference Include="Kawazu" Version="1.1.4" />
     <PackageReference Include="LibNMeCab" Version="0.10.2" />
     <PackageReference Include="LibNMeCab.IpaDicBin" Version="0.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JpMusicTagger.Logging\JpMusicTagger.Logging.csproj" />
   </ItemGroup>
 
 </Project>

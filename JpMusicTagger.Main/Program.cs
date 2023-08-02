@@ -1,4 +1,5 @@
 ﻿using JpMusicTagger.CDJapan;
+using JpMusicTagger.Logging;
 using JpMusicTagger.Main;
 using JpMusicTagger.Tags;
 using JpMusicTagger.VGMDB;
@@ -56,7 +57,7 @@ static async Task ProcessAlbum(string artist, string path)
 		await FileManager.RenameFile(song.Path, song.Tags);
 	}
 
-	await FileManager.RenameFolder(path, songs.First().Album.CatalogNumber);
+	await FileManager.RenameFolder(path, songs.First().Album);
 }
 
 static async Task<IEnumerable<SongTags>> GetTags(string album)

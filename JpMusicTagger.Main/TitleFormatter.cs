@@ -1,52 +1,125 @@
-﻿using System.Globalization;
+﻿using JpMusicTagger.Romanising;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace JpMusicTagger.Main;
 
-public static class TitleFormatter
+public static partial class TitleFormatter
 {
 	private static readonly TextInfo TextInfo =
 		new CultureInfo("en-US", false).TextInfo;
 
-	public static async Task<string> Format(string input)
+	[GeneratedRegex(" +")]
+	private static partial Regex MultipleSpaces();
+
+	[GeneratedRegex("!+")]
+	private static partial Regex MultipleBangs();
+
+	public static async Task<string> Format(string text)
 	{
-		throw new NotImplementedException();
+		text = text.Trim();
+		text = await Romanise(text);
+		text = TextInfo.ToTitleCase(text);
+		text = ReplaceSymbols(text);
+		text = ReplaceEnglishParticles(text);
+		text = ReplaceJapaneseParticles(text);
+		return text;
 	}
 
 	private static async Task<string> Romanise(string input)
 	{
-		var output = "";
-		var japBuffer = "";
+		if (string.IsNullOrWhiteSpace(input)) return input;
+		var output = new StringBuilder();
+		var buffer = new StringBuilder();
+		var currentType = input[0].Type();
+		var length = input.Length;
 
-		foreach (var c in input)
+		for (var i = 0; i < length; i++)
 		{
-			//https://www.ling.upenn.edu/courses/Spring_2003/ling538/UnicodeRanges.html
-			if (c >= 0x2E80 && c <= 0x9FAF)
+			buffer.Append(input[i]);
+			TextType? nextType = i + 1 < length ? input[i + 1].Type() : null;
+			if (nextType != currentType)
 			{
-				japBuffer += c;
-				continue;
+				var bufferStr = buffer.ToString();
+				var converted = await ConvertBuffer(bufferStr, currentType);
+				output.Append(converted);
+				currentType = nextType ?? currentType;
+				buffer.Clear();
 			}
-
-			if (!string.IsNullOrEmpty(japBuffer))
-			{
-				output += await RomanisePhrase(japBuffer);
-				japBuffer = "";
-			}
-			output += c;
 		}
-		return output;
+		return output.ToString();
 	}
 
-	private static async Task<string> RomanisePhrase(string input)
+	private static async Task<string> ConvertBuffer(string text, TextType type)
 	{
-		try
+		return type switch
 		{
-			var output = await Romaniser.Romaniser.Convert(input);
-			output = output.Replace('\"', '\'').Trim();
-			return TextInfo.ToTitleCase(output);
-		}
-		catch
-		{
-			return input;
-		}
+			TextType.Katakana => await GoogleTranslate.Translate(text),
+			TextType.Kanji => await Romaniser.Convert(text),
+			_ => text,
+		};
+	}
+
+	private static string ReplaceJapaneseParticles(string text)
+	{
+		text = text.Replace(" Ha ", " wa ");
+		text = text.Replace(" Ga ", " ga ");
+		text = text.Replace(" No ", " no ");
+		text = text.Replace(" De ", " de ");
+		text = text.Replace(" To ", " to ");
+		text = text.Replace(" Ni ", " ni ");
+		text = text.Replace(" He ", " e ");
+		text = text.Replace(" Wo ", " wo ");
+		text = text.Replace(" No ", " no ");
+		text = text.Replace(" Ka ", " ka ");
+		return text;
+	}
+
+	private static string ReplaceEnglishParticles(string text)
+	{
+		text = text.Replace(" The ", " the ");
+		text = text.Replace(" A ", " a ");
+		text = text.Replace(" Of ", " of ");
+		text = text.Replace(" In ", " in ");
+		text = text.Replace(" With ", " with ");
+		text = text.Replace(" By ", " by ");
+		text = text.Replace(" And ", " and ");
+		text = text.Replace(" For ", " for ");
+		return text;
+	}
+
+	private static string ReplaceSymbols(string text)
+	{
+		text = text.Replace('「', '[');
+		text = text.Replace('」', ']');
+
+		text = text.Replace('『', '[');
+		text = text.Replace('』', ']');
+
+		text = text.Replace('【', '[');
+		text = text.Replace('】', ']');
+
+		text = text.Replace('［', '[');
+		text = text.Replace('］', ']');
+
+		text = text.Replace('（', '(');
+		text = text.Replace('）', ')');
+
+		text = text.Replace("＜", "(");
+		text = text.Replace("＞", ")");
+
+		text = text.Replace("<", "(");
+		text = text.Replace(">", ")");
+
+		text = text.Replace('〜', '~');
+
+		text = text.Replace('\t', ' ');
+		text = text.Replace('\r', ' ');
+
+		text = MultipleSpaces().Replace(text, " ");
+		text = MultipleBangs().Replace(text, "!");
+
+		return text;
 	}
 }

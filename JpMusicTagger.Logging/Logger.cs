@@ -1,12 +1,12 @@
 ﻿using System.Text;
 
-namespace JpMusicTagger.Main;
+namespace JpMusicTagger.Logging;
 
 public static class Logger
 {
 	private static string LogPath = AppDomain.CurrentDomain.BaseDirectory;
 	private static readonly string LogFileName = 
-		typeof(Program).Assembly.GetName().Name + ".log";
+		DateTime.Now.ToString() + "JpMusicTagger.log";
 
 	public static void SetPath(string path) => LogPath = path;
 
