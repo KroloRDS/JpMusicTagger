@@ -5,8 +5,13 @@ namespace JpMusicTagger.Logging;
 public static class Logger
 {
 	private static string LogPath = AppDomain.CurrentDomain.BaseDirectory;
-	private static readonly string LogFileName = 
-		DateTime.Now.ToString() + "JpMusicTagger.log";
+	private static readonly string LogFileName = SetLogFileName();
+
+	private static string SetLogFileName()
+	{
+		var now = DateTime.Now.ToString("yy.MM.dd HH-mm-ss");
+		return now + " JpMusicTagger.log";
+	}
 
 	public static void SetPath(string path) => LogPath = path;
 

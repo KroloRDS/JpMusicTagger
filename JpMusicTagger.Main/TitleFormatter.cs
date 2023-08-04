@@ -1,4 +1,5 @@
-﻿using JpMusicTagger.Romanising;
+﻿using JpMusicTagger.Google;
+using JpMusicTagger.Logging;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -55,10 +56,20 @@ public static partial class TitleFormatter
 	{
 		return type switch
 		{
-			TextType.Katakana => await GoogleTranslate.Translate(text),
-			TextType.Kanji => await Romaniser.Convert(text),
+			TextType.Katakana => await GoogleApi.Translate(text),
+			TextType.Kanji => await GoogleApiRomanise(text),
 			_ => text,
 		};
+	}
+
+	private static async Task<string> GoogleApiRomanise(string text)
+	{
+		var romanised = await GoogleApi.Romanise(text);
+		if (romanised.ToCharArray().Any(x => x.Type() == TextType.Kanji))
+		{
+			await Logger.Log($"Text {text} was not romanised");
+		}
+		return romanised;
 	}
 
 	private static string ReplaceJapaneseParticles(string text)
@@ -117,6 +128,17 @@ public static partial class TitleFormatter
 		text = text.Replace('\t', ' ');
 		text = text.Replace('\r', ' ');
 
+		//https://www.youtube.com/watch?v=Hv6RbEOlqRo
+		text = text.Replace('ā', 'a');
+		text = text.Replace('ē', 'e');
+		text = text.Replace('ī', 'i');
+
+		text = text.Replace('ō', 'o');
+		text = text.Replace('ô', 'o');
+
+		text = text.Replace('ū', 'u');
+		text = text.Replace('û', 'u');
+		
 		text = MultipleSpaces().Replace(text, " ");
 		text = MultipleBangs().Replace(text, "!");
 

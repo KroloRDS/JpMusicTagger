@@ -1,4 +1,4 @@
-﻿namespace JpMusicTagger.Romanising;
+﻿namespace JpMusicTagger.Main;
 
 public enum TextType
 {
