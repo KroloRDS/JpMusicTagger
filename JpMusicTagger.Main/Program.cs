@@ -52,6 +52,8 @@ static async Task ProcessAlbum(string artist, string path)
 
 	foreach (var song in songFiles)
 	{
+		var originalFileName = Path.GetFileNameWithoutExtension(song.Path);
+		song.Tags.Comment = $"{song.Tags.Title} // {originalFileName}";
 		song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
 		TagManager.Write(song.Path, song.Tags);
 		await FileManager.RenameFile(song.Path, song.Tags);

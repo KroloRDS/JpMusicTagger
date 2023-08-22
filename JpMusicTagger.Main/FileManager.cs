@@ -46,8 +46,7 @@ public static class FileManager
 	private static string GetNewFileName(SongTags tags)
 	{
 		var newName = tags.TrackNumber + '.' + tags.Title;
-		if (!string.IsNullOrEmpty(tags.DiscNumber))
-			newName = tags.DiscNumber + '.' + newName;
+		if (tags.DiscNumber > 0) newName = tags.DiscNumber + '.' + newName;
 		return SanitizeText(newName);
 	}
 

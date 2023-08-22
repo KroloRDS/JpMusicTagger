@@ -45,7 +45,7 @@ public class DirectoryMatcher
 			files.Add(new SongFile
 			{
 				Path = pathsArr[i],
-				Tags = tagsArr[i]
+				Tags = MergeTags(pathsArr[i], tagsArr[i])
 			});
 		}
 
@@ -60,7 +60,7 @@ public class DirectoryMatcher
 			var lengthFromTags = file.Tags.Length;
 			if (lengthFromTags == TimeSpan.Zero) continue;
 
-			var diff = lengthFromTags - GetSongLength(file.Path);
+			var diff = lengthFromTags - TagManager.GetSongLength(file.Path);
 			if (diff < TimeSpan.Zero) diff *= -1;
 			if (diff > epsilon) return false;
 		}
@@ -68,9 +68,24 @@ public class DirectoryMatcher
 		return true;
 	}
 
-	private static TimeSpan GetSongLength(string path)
+	private static SongTags MergeTags(string path, SongTags tags)
 	{
-		throw new NotImplementedException();
+		var fileTags = TagManager.Get(path);
+
+		if (tags.TrackNumber == 0) tags.TrackNumber = fileTags.TrackNumber;
+		if (tags.DiscNumber == 0) tags.DiscNumber = fileTags.DiscNumber;
+		if (tags.Album.Year == 0) tags.Album.Year = fileTags.Album.Year;
+
+		if (string.IsNullOrWhiteSpace(tags.Artist))
+			tags.Artist = fileTags.Artist;
+		if (string.IsNullOrWhiteSpace(tags.Album.Name))
+			tags.Album.Name = fileTags.Album.Name;
+		if (string.IsNullOrWhiteSpace(tags.Album.Artist))
+			tags.Album.Artist = fileTags.Album.Artist;
+		if (string.IsNullOrWhiteSpace(tags.Album.Composer))
+			tags.Album.Composer = fileTags.Album.Composer;
+
+		return tags;
 	}
 
 	private class SongFile
