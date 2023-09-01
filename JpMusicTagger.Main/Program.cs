@@ -64,7 +64,7 @@ static async Task ProcessAlbum(string artist, string path)
 
 static async Task<IEnumerable<SongTags>> GetTags(string album)
 {
-	var songs = await VgmdbApi.GetTags(album);
+	var songs = await VgmdbScrapper.GetTags(album);
 	if (songs is null || !songs.Any())
 		songs = await CdJapanScrapper.GetTags(album);
 

@@ -6,9 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\JpMusicTagger.SongMetadata\JpMusicTagger.Tags.csproj" />
-    <ProjectReference Include="..\JpMusicTagger.Utils\JpMusicTagger.Utils.csproj" />
-  </ItemGroup>
-
 </Project>
