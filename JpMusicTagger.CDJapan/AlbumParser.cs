@@ -1,14 +1,15 @@
 ﻿using JpMusicTagger.Tags;
 using JpMusicTagger.Utils;
 
-namespace JpMusicTagger.VGMDB;
+namespace JpMusicTagger.CDJapan;
 
-public static class AlbumParser
+public class AlbumParser
 {
-	public static IEnumerable<SongTags> Parse(string html)
+	public static IEnumerable<SongTags> Parse(string html, string catalogNumer)
 	{
 		var songs = new List<SongTags>();
 		var album = GetAlbumTags(html);
+		album.CatalogNumber = catalogNumer;
 
 		var disks = GetDisks(html);
 		var diskNumber = disks.Count() > 1 ? 1U : 0U;
@@ -29,9 +30,7 @@ public static class AlbumParser
 		var album = new AlbumTags
 		{
 			Artist = GetAlbumArtist(html),
-			CatalogNumber = GetCatalogNumber(html),
 			Name = GetAlbumName(html),
-			Composer = GetComposer(html),
 			Year = GetReleaseYear(html)
 		};
 		return album;
@@ -39,61 +38,30 @@ public static class AlbumParser
 
 	private static string GetAlbumArtist(string html)
 	{
-		var cut = html.Cut("Publisher");
+		var cut = html.Cut("<h3 class=\"person\">", "</h3>");
 		if (cut is null) return string.Empty;
 
-		cut = cut.Cut("<span");
+		cut = cut.Cut("<a href=");
 		if (cut is null) return string.Empty;
 
 		cut = cut.Cut(">", "<");
 		cut = cut?.Trim().FixHtmlSpecialChars();
 		return cut ?? string.Empty;
-	}
-
-	private static string GetCatalogNumber(string html)
-	{
-		var cut = html.Cut("Catalog Number");
-		if (cut is null) return string.Empty;
-
-		cut = cut.Cut("<td");
-		if (cut is null) return string.Empty;
-
-		cut = cut.Cut(">", "<");
-		return cut?.Trim() ?? string.Empty;
 	}
 
 	private static string GetAlbumName(string html)
 	{
-		var cut = html.Cut("<h1><span class=\"albumtitle\"");
-		if (cut is null) return string.Empty;
-
-		cut = cut.Cut(">", "<");
-		cut = cut?.Trim().FixHtmlSpecialChars();
-		return cut ?? string.Empty;
-	}
-
-	private static string GetComposer(string html)
-	{
-		var cut = html.Cut("Compos");
-		if (cut is null) return string.Empty;
-
-		cut = cut.Cut("<a");
-		if (cut is null) return string.Empty;
-
-		cut = cut.Cut(">", "<");
+		var cut = html.Cut(null, "</span>");
 		cut = cut?.Trim().FixHtmlSpecialChars();
 		return cut ?? string.Empty;
 	}
 
 	private static uint GetReleaseYear(string html)
 	{
-		var cut = html.Cut("Catalog Number");
+		var cut = html.Cut("<span itemprop=\"releaseDate\">");
 		if (cut is null) return 0U;
 
-		cut = cut.Cut("<a");
-		if (cut is null) return 0U;
-
-		cut = cut.Cut(">", "<");
+		cut = cut.Cut(null, "</span>");
 		if (cut is null || cut.Length < 4) return 0U;
 		cut = cut[^4..];
 
@@ -104,25 +72,14 @@ public static class AlbumParser
 
 	private static IEnumerable<string> GetDisks(string html)
 	{
-		var disks = Array.Empty<string>();
-		var tracklistMarker = "<!-- / tracklist tools menu -->";
-
-		var cut = html.Cut(tracklistMarker);
-		if (cut is null) return disks;
-
-		cut = cut.Contains(tracklistMarker) ?
-			cut.Cut(null, tracklistMarker) :
-			cut.Cut(null, "<h3>Notes");
-		if (cut is null) return disks;
-
-		disks = cut.Split("<table");
+		var disks = html.Split("<table class=\"tracklist\">");
 		if (disks.Length > 1) disks = disks.Skip(1).ToArray();
 		return disks;
 	}
 
 	private static IEnumerable<string> GetTracks(string html)
 	{
-		var tracks = html.Split("<tr");
+		var tracks = html.Split("<tr>");
 		if (tracks.Length > 1) tracks = tracks.Skip(1).ToArray();
 		return tracks;
 	}

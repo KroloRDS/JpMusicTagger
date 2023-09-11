@@ -17,4 +17,17 @@ public static class StringExtensions
 		var result = text[startIndex..endIndex];
 		return result;
 	}
+
+	public static string? FixHtmlSpecialChars(this string? text)
+	{
+		if (string.IsNullOrWhiteSpace(text)) return text;
+
+		text = text.Replace("&quot;", "\"");
+		text = text.Replace("&apos;", "'");
+		text = text.Replace("&amp;", "&");
+		text = text.Replace("&lt;", "<");
+		text = text.Replace("&gt;", ">");
+
+		return text;
+	}
 }

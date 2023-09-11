@@ -9,18 +9,21 @@ await Process();
 static async Task Process()
 {
 	var consoleArgs = Environment.GetCommandLineArgs();
-	var entryPath = Path.GetDirectoryName(consoleArgs[0]);
-	if (consoleArgs.Length > 1)
-	{
-		entryPath = consoleArgs[1];
-		Logger.SetPath(entryPath);
-	}
 
+	var entryPath = Path.GetDirectoryName(consoleArgs[0]);
 	if (!Directory.Exists(entryPath))
 	{
 		await Logger.Log($"Directory {entryPath} does not exist");
 		return;
 	}
+
+	var logPath = consoleArgs.Length > 1 ? consoleArgs[1] : entryPath;
+	if (!Directory.Exists(logPath))
+	{
+		await Logger.Log($"Directory {logPath} does not exist");
+		return;
+	}
+	Logger.SetPath(entryPath);
 
 	foreach (var artistDir in Directory.GetDirectories(entryPath))
 	{
@@ -35,7 +38,7 @@ static async Task Process()
 static async Task ProcessAlbum(string artist, string path)
 {
 	var album = Path.GetFileNameWithoutExtension(path);
-	var songs = await GetTags(album);
+	var songs = await GetTags(album, artist);
 	
 	if (songs is null || !songs.Any())
 	{
@@ -62,11 +65,11 @@ static async Task ProcessAlbum(string artist, string path)
 	await FileManager.RenameFolder(path, songs.First().Album);
 }
 
-static async Task<IEnumerable<SongTags>> GetTags(string album)
+static async Task<IEnumerable<SongTags>> GetTags(string album, string artist)
 {
 	var songs = await VgmdbScrapper.GetTags(album);
 	if (songs is null || !songs.Any())
-		songs = await CdJapanScrapper.GetTags(album);
+		songs = await CdJapanScrapper.GetTags(album, artist);
 
 	return songs;
 }

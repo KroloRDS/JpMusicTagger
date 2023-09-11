@@ -11,19 +11,19 @@ public static class SearchResultsParser
 		var matchingRows = rows.Where(x => MatchAlbumName(x, albumName));
 
 		return matchingRows.Count() != 1 ? null :
-			GetAlbumIdFromSearchRow(matchingRows.First());
+			GetAlbumId(matchingRows.First());
 	}
 
 	private static bool MatchAlbumName(string html, string albumName)
 	{
-		var nameFromHtml = GetAlbumNameFromSearchRow(html);
+		var nameFromHtml = GetAlbumName(html);
 		if (nameFromHtml is null) return false;
 		return nameFromHtml.ToLower() == albumName.ToLower();
 	}
 
-	private static string? GetAlbumNameFromSearchRow(string searchRow)
+	private static string? GetAlbumName(string html)
 	{
-		var cut = searchRow.Cut("class=\"albumtitle\"");
+		var cut = html.Cut("class=\"albumtitle\"");
 		if (cut is null) return null;
 
 		cut = cut.Cut(null, "</span>");
@@ -36,9 +36,9 @@ public static class SearchResultsParser
 		return name.Trim();
 	}
 
-	private static string? GetAlbumIdFromSearchRow(string searchRow)
+	private static string? GetAlbumId(string html)
 	{
-		var cut = searchRow.Cut("href=\"https://vgmdb.net/album/");
+		var cut = html.Cut("href=\"https://vgmdb.net/album/");
 		if (cut is null) return null;
 
 		cut = cut.Cut(null, "\"");

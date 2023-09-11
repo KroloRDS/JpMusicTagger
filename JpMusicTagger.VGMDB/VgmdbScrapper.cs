@@ -16,17 +16,17 @@ public static class VgmdbScrapper
 		return client;
 	}
 
-	public static async Task<IEnumerable<SongTags>> GetTags(string albumName)
+	public static async Task<IEnumerable<SongTags>> GetTags(string album)
 	{
 		var songs = Enumerable.Empty<SongTags>();
-		(var title, var content) = await GetHtmlTitleAndContent(
-			$"search?q={albumName}&type=album");
 
+		(var title, var content) = await GetHtmlTitleAndContent(
+			$"search?q={album}&type=album");
 		if (title is null || content is null) return songs;
 
 		if (title.Contains("Search Results"))
 		{
-			var id = SearchResultsParser.GetAlbumId(content, albumName);
+			var id = SearchResultsParser.GetAlbumId(content, album);
 			if (id is null) return songs;
 
 			(_, content) = await GetHtmlTitleAndContent("album/" + id);
