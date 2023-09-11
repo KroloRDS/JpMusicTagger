@@ -1,6 +1,6 @@
 ﻿using JpMusicTagger.Google;
 using JpMusicTagger.Logging;
-using System.Globalization;
+using JpMusicTagger.Utils;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -8,9 +8,6 @@ namespace JpMusicTagger.Main;
 
 public static partial class TitleFormatter
 {
-	private static readonly TextInfo TextInfo =
-		new CultureInfo("en-US", false).TextInfo;
-
 	[GeneratedRegex(" +")]
 	private static partial Regex MultipleSpaces();
 
@@ -19,12 +16,12 @@ public static partial class TitleFormatter
 
 	public static async Task<string> Format(string text)
 	{
+		text = ReplaceSymbols(text);
 		text = text.Trim();
 		text = await Romanise(text);
-		text = TextInfo.ToTitleCase(text);
-		text = ReplaceSymbols(text);
-		text = ReplaceEnglishParticles(text);
-		text = ReplaceJapaneseParticles(text);
+		text = text.ToTitleCase();
+		text = ReplaceVowels(text);
+		text = FixBraceSpaces(text);
 		return text;
 	}
 
@@ -44,6 +41,7 @@ public static partial class TitleFormatter
 			{
 				var bufferStr = buffer.ToString();
 				var converted = await ConvertBuffer(bufferStr, currentType);
+				output.Append(' ');
 				output.Append(converted);
 				currentType = nextType ?? currentType;
 				buffer.Clear();
@@ -70,34 +68,6 @@ public static partial class TitleFormatter
 			await Logger.Log($"Text {text} was not romanised");
 		}
 		return romanised;
-	}
-
-	private static string ReplaceJapaneseParticles(string text)
-	{
-		text = text.Replace(" Ha ", " wa ");
-		text = text.Replace(" Ga ", " ga ");
-		text = text.Replace(" No ", " no ");
-		text = text.Replace(" De ", " de ");
-		text = text.Replace(" To ", " to ");
-		text = text.Replace(" Ni ", " ni ");
-		text = text.Replace(" He ", " e ");
-		text = text.Replace(" Wo ", " wo ");
-		text = text.Replace(" No ", " no ");
-		text = text.Replace(" Ka ", " ka ");
-		return text;
-	}
-
-	private static string ReplaceEnglishParticles(string text)
-	{
-		text = text.Replace(" The ", " the ");
-		text = text.Replace(" A ", " a ");
-		text = text.Replace(" Of ", " of ");
-		text = text.Replace(" In ", " in ");
-		text = text.Replace(" With ", " with ");
-		text = text.Replace(" By ", " by ");
-		text = text.Replace(" And ", " and ");
-		text = text.Replace(" For ", " for ");
-		return text;
 	}
 
 	private static string ReplaceSymbols(string text)
@@ -127,20 +97,46 @@ public static partial class TitleFormatter
 
 		text = text.Replace('\t', ' ');
 		text = text.Replace('\r', ' ');
-
-		//https://www.youtube.com/watch?v=Hv6RbEOlqRo
-		text = text.Replace('ā', 'a');
-		text = text.Replace('ē', 'e');
-		text = text.Replace('ī', 'i');
-
-		text = text.Replace('ō', 'o');
-		text = text.Replace('ô', 'o');
-
-		text = text.Replace('ū', 'u');
-		text = text.Replace('û', 'u');
 		
 		text = MultipleSpaces().Replace(text, " ");
 		text = MultipleBangs().Replace(text, "!");
+
+		return text;
+	}
+
+	private static string ReplaceVowels(string text)
+	{
+		//https://www.youtube.com/watch?v=Hv6RbEOlqRo
+		text = text.Replace("ā", "aa");
+		text = text.Replace("ē", "ei");
+		text = text.Replace("ī", "ii");
+
+		text = text.Replace("ō", "ou");
+		text = text.Replace('ô', 'o');
+
+		text = text.Replace("ū", "uu");
+		text = text.Replace('û', 'u');
+
+		return text;
+	}
+
+	private static string FixBraceSpaces(string text)
+	{
+		text = text.Replace(" (", "(");
+		text = text.Replace("( ", "(");
+		text = text.Replace("(", " (");
+
+		text = text.Replace(" )", ")");
+		text = text.Replace("( ", ")");
+		text = text.Replace(")", ") ");
+
+		text = text.Replace(" [", "[");
+		text = text.Replace("[ ", "[");
+		text = text.Replace("[", " [");
+
+		text = text.Replace(" ]", "]");
+		text = text.Replace("] ", "]");
+		text = text.Replace("]", "] ");
 
 		return text;
 	}

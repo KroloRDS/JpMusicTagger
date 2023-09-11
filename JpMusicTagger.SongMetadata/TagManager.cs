@@ -40,6 +40,7 @@ public static class TagManager
 		file.Tag.Composers = songMetadata.Album.Composer.Split(", ");
 		
 		file.Tag.Album = songMetadata.Album.Name;
+		file.Tag.Title = songMetadata.Title;
 		if (songMetadata.Album.Year > 0)
 			file.Tag.Year = songMetadata.Album.Year;
 

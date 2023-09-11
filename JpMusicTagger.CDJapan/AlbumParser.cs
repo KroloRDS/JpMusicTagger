@@ -53,7 +53,10 @@ public class AlbumParser
 	{
 		var cut = html.Cut(null, "</span>");
 		cut = cut?.Trim().FixHtmlSpecialChars();
-		return cut ?? string.Empty;
+		if (cut is null) return string.Empty;
+
+		var name = cut.ToTitleCase();
+		return name;
 	}
 
 	private static uint GetReleaseYear(string html)

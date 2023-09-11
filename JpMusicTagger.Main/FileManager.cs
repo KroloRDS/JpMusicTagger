@@ -30,10 +30,11 @@ public static class FileManager
 	public static async Task RenameFile(string path, SongTags tags)
 	{
 		var newName = GetNewFileName(tags);
+		var ext = Path.GetExtension(path).ToLower();
 		try
 		{
 			var info = new FileInfo(path);
-			info.MoveTo(info.Directory!.FullName + "\\" + newName);
+			info.MoveTo(info.Directory!.FullName + "\\" + newName + ext);
 		}
 		catch
 		{
@@ -45,7 +46,9 @@ public static class FileManager
 
 	private static string GetNewFileName(SongTags tags)
 	{
-		var newName = tags.TrackNumber + '.' + tags.Title;
+		var trackNumber = tags.TrackNumber.ToString();
+		if (tags.TrackNumber < 10) trackNumber = '0' + trackNumber;
+		var newName = trackNumber + '.' + tags.Title;
 		if (tags.DiscNumber > 0) newName = tags.DiscNumber + '.' + newName;
 		return SanitizeText(newName);
 	}

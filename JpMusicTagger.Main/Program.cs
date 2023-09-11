@@ -8,9 +8,9 @@ await Process();
 
 static async Task Process()
 {
-	var consoleArgs = Environment.GetCommandLineArgs();
+	var consoleArgs = new[] { "D:\\Temp\\test" };//Environment.GetCommandLineArgs();
 
-	var entryPath = Path.GetDirectoryName(consoleArgs[0]);
+	var entryPath = consoleArgs[0];
 	if (!Directory.Exists(entryPath))
 	{
 		await Logger.Log($"Directory {entryPath} does not exist");
@@ -56,13 +56,13 @@ static async Task ProcessAlbum(string artist, string path)
 	foreach (var song in songFiles)
 	{
 		var originalFileName = Path.GetFileNameWithoutExtension(song.Path);
-		song.Tags.Comment = $"{song.Tags.Title} // {originalFileName}";
+		song.Tags.Comment = song.Tags.Title;
 		song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
 		TagManager.Write(song.Path, song.Tags);
 		await FileManager.RenameFile(song.Path, song.Tags);
 	}
 
-	await FileManager.RenameFolder(path, songs.First().Album);
+	//await FileManager.RenameFolder(path, songs.First().Album);
 }
 
 static async Task<IEnumerable<SongTags>> GetTags(string album, string artist)

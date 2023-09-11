@@ -34,7 +34,7 @@ public static class Logger
 	{
 		var sb = new StringBuilder();
 		if (!string.IsNullOrEmpty(artist)) sb.AppendLine("Artist: " + artist);
-		if (!string.IsNullOrEmpty(album)) sb.AppendLine("Artist: " + album);
+		if (!string.IsNullOrEmpty(album)) sb.AppendLine("Album: " + album);
 		sb.AppendLine(message + Environment.NewLine);
 		var log = sb.ToString();
 		return log;

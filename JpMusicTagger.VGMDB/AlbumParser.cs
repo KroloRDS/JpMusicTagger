@@ -69,7 +69,10 @@ public static class AlbumParser
 
 		cut = cut.Cut(">", "<");
 		cut = cut?.Trim().FixHtmlSpecialChars();
-		return cut ?? string.Empty;
+		if (cut is null) return string.Empty;
+
+		var name = cut.ToTitleCase();
+		return name;
 	}
 
 	private static string GetComposer(string html)

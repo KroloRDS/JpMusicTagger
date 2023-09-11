@@ -84,6 +84,8 @@ public static class GoogleApi
 		try
 		{
 			var response = await _romaniseClient.PostAsync("", request);
+			if (!response.IsSuccessStatusCode)
+				throw new Exception($"Google returned error code {response.StatusCode}");
 
 			var json = await response.Content.ReadAsStringAsync();
 			var result = JsonSerializer.Deserialize<RomanisationResponse>(
