@@ -1,4 +1,6 @@
-﻿namespace JpMusicTagger.Tags;
+﻿using ATL;
+
+namespace JpMusicTagger.Tags;
 
 public static class TagManager
 {
@@ -11,21 +13,21 @@ public static class TagManager
 
 	public static SongTags Get(string path)
 	{
-		var file = TagLib.File.Create(path);
+		var track = new Track(path);
 		var tags = new SongTags
 		{
-			Artist = file.Tag.JoinedPerformers,
-			Comment = file.Tag.Comment,
-			DiscNumber = file.Tag.Disc,
-			Length = file.Properties.Duration,
-			Title = file.Tag.Title,
-			TrackNumber = file.Tag.Track,
+			Artist = track.Artist,
+			Comment = track.Comment,
+			DiscNumber = track.DiscNumber,
+			Length = TimeSpan.FromSeconds(track.Duration),
+			Title = track.Title,
+			TrackNumber = track.TrackNumber,
 			Album = new AlbumTags
 			{
-				Artist = file.Tag.JoinedAlbumArtists,
-				Composer = file.Tag.JoinedComposers,
-				Name = file.Tag.Album,
-				Year = file.Tag.Year
+				Artist = track.AlbumArtist,
+				Composer = track.Composer,
+				Name = track.Album,
+				Year = track.Year
 			}
 		};
 		return tags;
@@ -33,28 +35,26 @@ public static class TagManager
 
 	public static void Write(string path, SongTags songMetadata)
 	{
-		var file = TagLib.File.Create(path);
+		var track = new Track(path);
 
-		file.Tag.Performers = songMetadata.Artist.Split(", ");
-		file.Tag.AlbumArtists = songMetadata.Album.Artist.Split(", ");
-		file.Tag.Composers = songMetadata.Album.Composer.Split(", ");
+		track.Artist = songMetadata.Artist;
+		track.AlbumArtist = songMetadata.Album.Artist;
+		track.Composer = songMetadata.Album.Composer;
 		
-		file.Tag.Album = songMetadata.Album.Name;
-		file.Tag.Title = songMetadata.Title;
-		if (songMetadata.Album.Year > 0)
-			file.Tag.Year = songMetadata.Album.Year;
+		track.Album = songMetadata.Album.Name;
+		track.Title = songMetadata.Title;
+		if (HasPositiveValue(songMetadata.Album.Year))
+			track.Year = songMetadata.Album.Year;
 
-		file.Tag.Comment = songMetadata.Comment;
-		if (songMetadata.TrackNumber > 0)
-			file.Tag.Track = songMetadata.TrackNumber;
-		if (songMetadata.DiscNumber > 0)
-			file.Tag.Disc = songMetadata.DiscNumber;
+		track.Comment = songMetadata.Comment;
+		if (HasPositiveValue(songMetadata.TrackNumber))
+			track.TrackNumber = songMetadata.TrackNumber;
+		if (HasPositiveValue(songMetadata.DiscNumber))
+			track.DiscNumber = songMetadata.DiscNumber;
 
-		file.Save();
+		track.Save();
 	}
 
-	public static void Clear(string path)
-	{
-		Write(path, new());
-	}
+	private static bool HasPositiveValue(int? number) =>
+		number.HasValue && number.Value > 0;
 }

@@ -46,11 +46,18 @@ public static class FileManager
 
 	private static string GetNewFileName(SongTags tags)
 	{
-		var trackNumber = tags.TrackNumber.ToString();
-		if (tags.TrackNumber < 10) trackNumber = '0' + trackNumber;
-		var newName = trackNumber + '.' + tags.Title;
-		if (tags.DiscNumber > 0) newName = tags.DiscNumber + '.' + newName;
+		var trackNumber = GetNumberPrefix(tags.TrackNumber);
+		var discNumber = GetNumberPrefix(tags.DiscNumber, false);
+		var newName = discNumber + trackNumber + tags.Title;
 		return SanitizeText(newName);
+	}
+
+	private static string GetNumberPrefix(int? number, bool leadingZero = true)
+	{
+		if (!number.HasValue || number == 0) return string.Empty;
+		var text = number.ToString();
+		if (leadingZero && number < 10) text = '0' + text;
+		return text + '.';
 	}
 
 	private static string SanitizeText(string text)

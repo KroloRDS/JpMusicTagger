@@ -11,7 +11,7 @@ public static class AlbumParser
 		var album = GetAlbumTags(html);
 
 		var disks = GetDisks(html);
-		var diskNumber = disks.Count() > 1 ? 1U : 0U;
+		int? diskNumber = disks.Count() > 1 ? 1 : null;
 
 		foreach (var disk in disks)
 		{
@@ -88,21 +88,21 @@ public static class AlbumParser
 		return cut ?? string.Empty;
 	}
 
-	private static uint GetReleaseYear(string html)
+	private static int? GetReleaseYear(string html)
 	{
 		var cut = html.Cut("Catalog Number");
-		if (cut is null) return 0U;
+		if (cut is null) return null;
 
 		cut = cut.Cut("<a");
-		if (cut is null) return 0U;
+		if (cut is null) return null;
 
 		cut = cut.Cut(">", "<");
-		if (cut is null || cut.Length < 4) return 0U;
+		if (cut is null || cut.Length < 4) return null;
 		cut = cut[^4..];
 
-		var valid = uint.TryParse(cut, out var year);
+		var valid = int.TryParse(cut, out var year);
 		if (valid) valid = year > 1000 && year < 2050;
-		return valid ? year : 0U;
+		return valid ? year : null;
 	}
 
 	private static IEnumerable<string> GetDisks(string html)

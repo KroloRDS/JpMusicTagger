@@ -6,7 +6,7 @@ namespace JpMusicTagger.CDJapan;
 public class SongParser
 {
 	public static SongTags GetSongTags(string html,
-		AlbumTags album, uint diskNumber)
+		AlbumTags album, int? diskNumber)
 	{
 		var song = new SongTags
 		{
@@ -30,15 +30,15 @@ public class SongParser
 		return cut ?? string.Empty;
 	}
 
-	private static uint GetTrackNumber(string html)
+	private static int? GetTrackNumber(string html)
 	{
 		var cut = html.Cut("<td class=\"track-no\">");
-		if (cut is null) return 0U;
+		if (cut is null) return null;
 
 		cut = cut.Cut(null, "<");
-		if (cut is null) return 0U;
+		if (cut is null) return null;
 
-		var success = uint.TryParse(cut, out var trackNumber);
-		return success ? trackNumber : 0U;
+		var success = int.TryParse(cut, out var trackNumber);
+		return success ? trackNumber : null;
 	}
 }

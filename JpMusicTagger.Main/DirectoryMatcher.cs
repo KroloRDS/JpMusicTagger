@@ -72,9 +72,9 @@ public class DirectoryMatcher
 	{
 		var fileTags = TagManager.Get(path);
 
-		if (tags.TrackNumber == 0) tags.TrackNumber = fileTags.TrackNumber;
-		if (tags.DiscNumber == 0) tags.DiscNumber = fileTags.DiscNumber;
-		if (tags.Album.Year == 0) tags.Album.Year = fileTags.Album.Year;
+		if (IsNullOrZero(tags.TrackNumber)) tags.TrackNumber = fileTags.TrackNumber;
+		if (IsNullOrZero(tags.DiscNumber)) tags.DiscNumber = fileTags.DiscNumber;
+		if (IsNullOrZero(tags.Album.Year)) tags.Album.Year = fileTags.Album.Year;
 
 		if (string.IsNullOrWhiteSpace(tags.Artist))
 			tags.Artist = fileTags.Artist;
@@ -87,6 +87,8 @@ public class DirectoryMatcher
 
 		return tags;
 	}
+
+	private static bool IsNullOrZero(int? number) => !number.HasValue || number == 0;
 
 	private class SongFile
 	{
