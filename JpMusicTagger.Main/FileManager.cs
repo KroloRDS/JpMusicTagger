@@ -7,7 +7,7 @@ public static class FileManager
 {
 	public static async Task RenameFolder(string path, AlbumTags album)
 	{
-		if (string.IsNullOrEmpty(album.CatalogNumber)) return;
+		if (!IsCatalogNumber(album.CatalogNumber)) return;
 
 		var info = new DirectoryInfo(path);
 		var prefix = $"[{album.CatalogNumber}] ";
@@ -25,6 +25,23 @@ public static class FileManager
 			var dir = info?.Name ?? string.Empty;
 			await Logger.Log(msg, artist, dir);
 		}
+	}
+
+	private static bool IsCatalogNumber(string? text)
+	{
+		if (text is null) return false;
+		if (text.Length < 6 || text.Length > 11) return false;
+		for (var i = 0; i < 4; i++)
+		{
+			if (!char.IsAsciiLetterUpper(text[i])) return false;
+		}
+		if (text[4] != '-') return false;
+		for (var i = 6; i < text.Length - 2; i++)
+		{
+			if (!char.IsDigit(text[i])) return false;
+		}
+		if (text[^2] != '~' && !char.IsDigit(text[^2])) return false;
+		return char.IsDigit(text[^1]);
 	}
 
 	public static async Task RenameFile(string path, SongTags tags)
