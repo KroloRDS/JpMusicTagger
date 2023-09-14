@@ -74,6 +74,7 @@ static async Task ProcessAlbum(string artist, string path)
 		var originalFileName = Path.GetFileNameWithoutExtension(song.Path);
 		song.Tags.Comment = song.Tags.Title;
 		song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
+		if (song.Tags.Comment == song.Tags.Title) song.Tags.Comment = string.Empty;
 		TagManager.Write(song.Path, song.Tags);
 		await FileManager.RenameFile(song.Path, song.Tags);
 	}
@@ -83,9 +84,50 @@ static async Task ProcessAlbum(string artist, string path)
 
 static async Task<IEnumerable<SongTags>> GetTags(string album, string artist)
 {
-	var songs = await VgmdbScrapper.GetTags(album);
+	(var catalogNumber, album) = GetCatalogNumberAndName(album);
+	var songs = await GetTagsFromVgmdb(album, catalogNumber);
+
+	if (songs is null || !songs.Any())
+		songs = await GetTagsFromCdJapan(album, artist, catalogNumber);
+
+	return songs;
+}
+
+static async Task<IEnumerable<SongTags>> GetTagsFromVgmdb(
+	string album, string? catalogNumber = null)
+{
+	var songs = Enumerable.Empty<SongTags>();
+	if (!string.IsNullOrWhiteSpace(catalogNumber))
+		songs = await VgmdbScrapper.GetTags(catalogNumber);
+
+	if (songs is null || !songs.Any())
+		songs = await VgmdbScrapper.GetTags(album);
+
+	return songs;
+}
+
+static async Task<IEnumerable<SongTags>> GetTagsFromCdJapan(
+	string album, string? artist = null, string? catalogNumber = null)
+{
+	var songs = Enumerable.Empty<SongTags>();
+	if (!string.IsNullOrWhiteSpace(catalogNumber))
+		songs = await CdJapanScrapper.GetTags(catalogNumber, artist);
+
 	if (songs is null || !songs.Any())
 		songs = await CdJapanScrapper.GetTags(album, artist);
 
 	return songs;
+}
+
+static (string? CatalogNumber, string Name) GetCatalogNumberAndName(string album)
+{
+	var index = album.IndexOf(']');
+	if (index == -1 || index == album.Length - 1) return (null, album.Trim());
+
+	var name = album[(index + 1)..];
+	var catalogNumer = album[1..index];
+	index = catalogNumer.IndexOf("~");
+	if (index != -1) catalogNumer = catalogNumer[..index];
+	
+	return (catalogNumer.Trim(), name.Trim());
 }
