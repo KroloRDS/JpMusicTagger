@@ -43,14 +43,14 @@ static async Task ProcessAlbum(string artist, string path)
 	
 	if (songs is null || !songs.Any())
 	{
-		await Logger.Log("Failed to get album data", album, artist);
+		await Logger.Log("Failed to get album data", artist, album);
 		return;
 	}
 
 	var songFiles = DirectoryMatcher.Match(songs, path);
 	if (songFiles is null || !songFiles.Any())
 	{
-		await Logger.Log("Album data mismatch", album, artist);
+		await Logger.Log("Album data mismatch", artist, album);
 		return;
 	}
 

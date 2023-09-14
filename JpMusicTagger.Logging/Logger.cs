@@ -29,6 +29,7 @@ public static class Logger
 			Console.Write(log);
 		}
 	}
+
 	private static string BuildLogText(string message,
 		string artist = "", string album = "")
 	{
