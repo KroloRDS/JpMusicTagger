@@ -9,15 +9,16 @@ await Process();
 static async Task Process()
 {
 	var consoleArgs = Environment.GetCommandLineArgs();
+	var entryPath = consoleArgs.Length > 1 ?
+		consoleArgs[1] : Directory.GetCurrentDirectory();
 
-	var entryPath = consoleArgs[0];
 	if (!Directory.Exists(entryPath))
 	{
 		await Logger.Log($"Directory {entryPath} does not exist");
 		return;
 	}
 
-	var logPath = consoleArgs.Length > 1 ? consoleArgs[1] : entryPath;
+	var logPath = consoleArgs.Length > 2 ? consoleArgs[2] : entryPath;
 	if (!Directory.Exists(logPath))
 	{
 		await Logger.Log($"Directory {logPath} does not exist");
