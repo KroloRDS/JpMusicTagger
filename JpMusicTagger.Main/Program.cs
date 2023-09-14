@@ -80,6 +80,7 @@ static async Task ProcessAlbum(string artist, string path)
 	}
 
 	await FileManager.RenameFolder(path, songs.First().Album);
+	Console.WriteLine($"Done processing {artist}/{album}");
 }
 
 static async Task<IEnumerable<SongTags>> GetTags(string album, string artist)
