@@ -56,7 +56,13 @@ public class AlbumParser
 		if (cut is null) return string.Empty;
 
 		var name = cut.ToTitleCase();
-		return name;
+
+		var index = name.IndexOf("[");
+		if (index == -1) index = name.IndexOf("(");
+
+        if (index > 0) name = name[..index];
+
+        return name.Trim();
 	}
 
 	private static int? GetReleaseYear(string html)

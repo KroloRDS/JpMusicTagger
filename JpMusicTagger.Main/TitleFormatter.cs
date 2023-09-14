@@ -22,6 +22,7 @@ public static partial class TitleFormatter
 		text = text.ToTitleCase();
 		text = ReplaceVowels(text);
 		text = FixBraceSpaces(text);
+		text = text.Trim();
 		return text;
 	}
 
