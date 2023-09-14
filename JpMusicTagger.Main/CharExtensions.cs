@@ -32,9 +32,6 @@ public static class CharExtensions
 		return TextType.Other;
 	}
 
-	private static bool IsInRange(this char c, CharRange range) =>
-		c >= range.Start && c <= range.End;
-
 	private class CharRange
 	{
 		public char Start;
