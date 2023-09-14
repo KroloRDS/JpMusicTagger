@@ -74,7 +74,8 @@ static async Task ProcessAlbum(string artist, string path)
 		var originalFileName = Path.GetFileNameWithoutExtension(song.Path);
 		song.Tags.Comment = song.Tags.Title;
 		song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
-		if (song.Tags.Comment == song.Tags.Title) song.Tags.Comment = string.Empty;
+		if (song.Tags.Comment.ToLower() == song.Tags.Title.ToLower())
+			song.Tags.Comment = string.Empty;
 		TagManager.Write(song.Path, song.Tags);
 		await FileManager.RenameFile(song.Path, song.Tags);
 	}
