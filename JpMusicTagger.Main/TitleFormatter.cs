@@ -22,6 +22,8 @@ public static partial class TitleFormatter
 		text = text.ToTitleCase();
 		text = ReplaceVowels(text);
 		text = FixBraceSpaces(text);
+		text = MultipleSpaces().Replace(text, " ");
+		text = MultipleBangs().Replace(text, "!");
 		text = text.Trim();
 		return text;
 	}
@@ -95,12 +97,18 @@ public static partial class TitleFormatter
 		text = text.Replace(">", ")");
 
 		text = text.Replace('〜', '~');
+		text = text.Replace('～', '~');
+
+		text = text.Replace(" 。", ".");
+		text = text.Replace('。', '.');
+
+		text = text.Replace(" 、", ",");
+		text = text.Replace('、', ',');
+
+		text = text.Replace('’', '\'');
 
 		text = text.Replace('\t', ' ');
 		text = text.Replace('\r', ' ');
-		
-		text = MultipleSpaces().Replace(text, " ");
-		text = MultipleBangs().Replace(text, "!");
 
 		return text;
 	}
