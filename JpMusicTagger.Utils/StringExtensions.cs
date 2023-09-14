@@ -32,6 +32,7 @@ public static class StringExtensions
 		text = text.Replace("&amp;", "&");
 		text = text.Replace("&lt;", "<");
 		text = text.Replace("&gt;", ">");
+		text = text.Replace("&#39;", "'");
 
 		return text;
 	}
@@ -39,7 +40,9 @@ public static class StringExtensions
 	public static string ToTitleCase(this string text)
 	{
 		if (string.IsNullOrWhiteSpace(text)) return text;
+		text = text.ToLower();
 		text = TextInfo.ToTitleCase(text);
+		text = text.Trim();
 		text = ReplaceEnglishParticles(text);
 		text = ReplaceJapaneseParticles(text);
 		return text;
@@ -47,30 +50,56 @@ public static class StringExtensions
 
 	private static string ReplaceJapaneseParticles(string text)
 	{
-		text = text.Replace(" Ha ", " wa ");
-		text = text.Replace(" Ga ", " ga ");
-		text = text.Replace(" No ", " no ");
-		text = text.Replace(" De ", " de ");
-		text = text.Replace(" To ", " to ");
-		text = text.Replace(" Ni ", " ni ");
-		text = text.Replace(" He ", " e ");
-		text = text.Replace(" Wo ", " wo ");
-		text = text.Replace(" O ", " wo ");
-		text = text.Replace(" No ", " no ");
-		text = text.Replace(" Ka ", " ka ");
+		text = text.ReplaceParticle("De");
+		text = text.ReplaceParticle("Ga");
+		text = text.ReplaceParticle("Ha", "wa");
+		text = text.ReplaceParticle("He");
+		text = text.ReplaceParticle("Ka");
+		text = text.ReplaceParticle("Na");
+		text = text.ReplaceParticle("Ne");
+		text = text.ReplaceParticle("Ni");
+		text = text.ReplaceParticle("No");
+		text = text.ReplaceParticle("Mo");
+		text = text.ReplaceParticle("O");
+		text = text.ReplaceParticle("To");
+		text = text.ReplaceParticle("Wa");
+		text = text.ReplaceParticle("Wo");
+
 		return text;
 	}
 
 	private static string ReplaceEnglishParticles(string text)
 	{
-		text = text.Replace(" The ", " the ");
-		text = text.Replace(" A ", " a ");
-		text = text.Replace(" Of ", " of ");
-		text = text.Replace(" In ", " in ");
-		text = text.Replace(" With ", " with ");
-		text = text.Replace(" By ", " by ");
-		text = text.Replace(" And ", " and ");
-		text = text.Replace(" For ", " for ");
+		text = text.ReplaceParticle("A");
+		text = text.ReplaceParticle("And");
+		text = text.ReplaceParticle("By");
+		text = text.ReplaceParticle("For");
+		text = text.ReplaceParticle("In");
+		text = text.ReplaceParticle("Of");
+		text = text.ReplaceParticle("The");
+		text = text.ReplaceParticle("With");
+
+		text = text.Replace("'S", "'s");
+		text = text.Replace("'Ve", "'ve");
+		text = text.Replace("'Nt", "'nt");
+
+		return text;
+	}
+
+	private static string ReplaceParticle(this string text,
+		string particle, string? replacement = null)
+	{
+		var particleUpper = char.ToUpper(particle[0]) + particle[1..].ToLower();
+		var particleLower = string.IsNullOrWhiteSpace(replacement) ?
+			 particle.ToLower() : replacement.ToLower();
+
+		text = text.Replace($" {particleUpper} ", $" {particleLower} ");
+		if (text.EndsWith($" {particleUpper}"))
+		{
+			var index = text.LastIndexOf(particleUpper);
+			text = text[..index] + particleLower;
+		}
+
 		return text;
 	}
 }
