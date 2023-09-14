@@ -8,7 +8,7 @@ await Process();
 
 static async Task Process()
 {
-	var consoleArgs = new[] { "D:\\Temp\\test" };//Environment.GetCommandLineArgs();
+	var consoleArgs = Environment.GetCommandLineArgs();
 
 	var entryPath = consoleArgs[0];
 	if (!Directory.Exists(entryPath))
@@ -62,7 +62,7 @@ static async Task ProcessAlbum(string artist, string path)
 		await FileManager.RenameFile(song.Path, song.Tags);
 	}
 
-	//await FileManager.RenameFolder(path, songs.First().Album);
+	await FileManager.RenameFolder(path, songs.First().Album);
 }
 
 static async Task<IEnumerable<SongTags>> GetTags(string album, string artist)
