@@ -39,7 +39,8 @@ public class CdJapanScrapper
 	{
 		var baseQuery = "searchuni?opt.exclude_prx=on&term.media_format=cd&q=";
 		var searchPhrase = album;
-		if (!string.IsNullOrWhiteSpace(artist)) searchPhrase += " " + artist;
+		if (!string.IsNullOrWhiteSpace(artist))
+			searchPhrase = artist + " " + searchPhrase;
 
 		var response = await _httpClient.GetAsync(baseQuery + searchPhrase);
 		if (!response.IsSuccessStatusCode) return null;
