@@ -54,7 +54,7 @@ public class DirectoryMatcher
 
 	private static bool CheckLengths(IEnumerable<SongFile> files)
 	{
-		var epsilon = TimeSpan.FromSeconds(2);
+		var epsilon = TimeSpan.FromSeconds(4);
 		foreach (var file in files)
 		{
 			var lengthFromTags = file.Tags.Length;
