@@ -2,30 +2,43 @@
 using JpMusicTagger.Logging;
 using JpMusicTagger.Main;
 using JpMusicTagger.Tags;
+using JpMusicTagger.Utils;
 using JpMusicTagger.VGMDB;
 
-await Process();
+var path = await Init();
+if (path is not null) await Process(path);
 
-static async Task Process()
+static async Task<string?> Init()
 {
 	var consoleArgs = Environment.GetCommandLineArgs();
-	var entryPath = consoleArgs.Length > 1 ?
-		consoleArgs[1] : Directory.GetCurrentDirectory();
+	if (CliHelper.Help(consoleArgs)) return null;
+
+	var entryPath = CliHelper.GetParameter("-p", consoleArgs) ??
+		CliHelper.GetParameter("-path", consoleArgs) ??
+		Directory.GetCurrentDirectory();
 
 	if (!Directory.Exists(entryPath))
 	{
 		await Logger.Log($"Directory {entryPath} does not exist");
-		return;
+		return null;
 	}
 
-	var logPath = consoleArgs.Length > 2 ? consoleArgs[2] : entryPath;
+	var logPath = CliHelper.GetParameter("-l", consoleArgs) ??
+		CliHelper.GetParameter("-log", consoleArgs) ??
+		CliHelper.GetParameter("-logPath", consoleArgs) ?? entryPath;
+
 	if (!Directory.Exists(logPath))
 	{
 		await Logger.Log($"Directory {logPath} does not exist");
-		return;
+		return null;
 	}
-	Logger.SetPath(entryPath);
+	Logger.SetPath(logPath);
 
+	return entryPath;
+}
+
+static async Task Process(string entryPath)
+{
 	foreach (var artistDir in Directory.GetDirectories(entryPath))
 	{
 		var artist = Path.GetFileNameWithoutExtension(artistDir);

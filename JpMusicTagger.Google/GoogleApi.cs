@@ -1,4 +1,5 @@
 ﻿using JpMusicTagger.Logging;
+using JpMusicTagger.Utils;
 using System.Text.Json;
 using System.Text;
 
@@ -14,8 +15,33 @@ public static class GoogleApi
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 	};
 	
-	private static readonly HttpClient _translateClient = InitTranslateClient();
-	private static readonly HttpClient _romaniseClient = InitRomiseClient();
+	private static readonly HttpClient _translateClient;
+	private static readonly HttpClient _romaniseClient;
+
+	static GoogleApi()
+	{
+		_translateClient = InitTranslateClient();
+
+		var consoleArgs = Environment.GetCommandLineArgs();
+
+		var token = CliHelper.GetParameter("-t", consoleArgs) ??
+			CliHelper.GetParameter("-token", consoleArgs);
+		if (token is null)
+		{
+			Logger.Log("Missing parameter: -token").Wait();
+			throw new ArgumentNullException("Token");
+		}
+
+		var projectId = CliHelper.GetParameter("-i", consoleArgs) ??
+			CliHelper.GetParameter("-id", consoleArgs);
+		if (projectId is null)
+		{
+			Logger.Log("Missing parameter: -id").Wait();
+			throw new ArgumentNullException("ProjectID");
+		}
+		
+		_romaniseClient = InitRomiseClient(token, projectId);
+	}
 
 	private static HttpClient InitTranslateClient()
 	{
@@ -26,40 +52,18 @@ public static class GoogleApi
 		return client;
 	}
 
-	private static HttpClient InitRomiseClient()
+	private static HttpClient InitRomiseClient
+		(string? token, string? projectId)
 	{
 		var client = new HttpClient();
-		var credentials = GetGoogleCredentials();
-		if (credentials is null) return client;
+		if (string.IsNullOrWhiteSpace(token) ||
+			string.IsNullOrWhiteSpace(projectId)) return client;
 
-		client.DefaultRequestHeaders.Add("Authorization", $"Bearer {credentials.Token}");
-		client.DefaultRequestHeaders.Add("x-goog-user-project", credentials.ProjectId);
-		client.BaseAddress = new Uri(RomaniseUrl + credentials.ProjectId + ":romanizeText");
+		client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+		client.DefaultRequestHeaders.Add("x-goog-user-project", projectId);
+		client.BaseAddress = new Uri(RomaniseUrl + projectId + ":romanizeText");
 
 		return client;
-	}
-
-	private static ApiCredentials? GetGoogleCredentials()
-	{
-		var path = Environment.GetEnvironmentVariable("GOOGLE_API_CREDENTIALS");
-		if (path is null)
-		{
-			Logger.Log("Env variable GOOGLE_API_CREDENTIALS couldn't be found").Wait();
-			return null;
-		};
-
-		var text = File.ReadAllText(path);
-		try
-		{
-			var credentials = JsonSerializer.Deserialize<ApiCredentials>(text);
-			return credentials;
-		}
-		catch (Exception ex)
-		{
-			var msg = "GOOGLE_API_CREDENTIALS couldn't be deserialised. " + ex.Message;
-			Logger.Log(msg).Wait();
-			return null;
-		}
 	}
 
 	public static async Task<string> Translate(string text)
@@ -112,12 +116,6 @@ public static class GoogleApi
 		}, JsonOptions);
 		var content = new StringContent(json, Encoding.UTF8, "application/json");
 		return content;
-	}
-
-	private class ApiCredentials
-	{
-		public string ProjectId { get; set; } = string.Empty;
-		public string Token { get; set; } = string.Empty;
 	}
 
 	private class RomanisationResponse
