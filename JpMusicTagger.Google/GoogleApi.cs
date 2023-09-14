@@ -39,8 +39,13 @@ public static class GoogleApi
 			Logger.Log("Missing parameter: -id").Wait();
 			throw new ArgumentNullException("ProjectID");
 		}
-		
-		_romaniseClient = InitRomiseClient(token, projectId);
+
+		_romaniseClient = InitRomaniseClient(token, projectId.ToLower());
+	}
+
+	public static void Init()
+	{
+		//A method to force the initialisation of this class early 
 	}
 
 	private static HttpClient InitTranslateClient()
@@ -52,7 +57,7 @@ public static class GoogleApi
 		return client;
 	}
 
-	private static HttpClient InitRomiseClient
+	private static HttpClient InitRomaniseClient
 		(string? token, string? projectId)
 	{
 		var client = new HttpClient();

@@ -1,4 +1,5 @@
 ﻿using JpMusicTagger.CDJapan;
+using JpMusicTagger.Google;
 using JpMusicTagger.Logging;
 using JpMusicTagger.Main;
 using JpMusicTagger.Tags;
@@ -12,6 +13,7 @@ static async Task<string?> Init()
 {
 	var consoleArgs = Environment.GetCommandLineArgs();
 	if (CliHelper.Help(consoleArgs)) return null;
+	GoogleApi.Init();
 
 	var entryPath = CliHelper.GetParameter("-p", consoleArgs) ??
 		CliHelper.GetParameter("-path", consoleArgs) ??
