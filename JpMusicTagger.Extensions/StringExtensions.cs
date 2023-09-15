@@ -1,11 +1,21 @@
 ﻿using System.Globalization;
 
-namespace JpMusicTagger.Utils;
+namespace JpMusicTagger.Extensions;
 
 public static class StringExtensions
 {
 	private static readonly TextInfo TextInfo =
 		new CultureInfo("en-US", false).TextInfo;
+
+	public static string? GetCliArgValue(this string[] args, string name)
+	{
+		var index = args.ToList().IndexOf(name.ToLower());
+		return index != -1 && args.Length > index + 1 ? args[index + 1] : null;
+	}
+
+	public static bool HasJapaneseChars(this string text) =>
+		text.Any(x => x.Type() == TextType.Kanji
+		|| x.Type() == TextType.Katakana);
 
 	public static string? Cut(this string text,
 		string? start, string? end = null)

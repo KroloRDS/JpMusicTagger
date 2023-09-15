@@ -1,6 +1,6 @@
 ﻿using JpMusicTagger.Google;
 using JpMusicTagger.Logging;
-using JpMusicTagger.Utils;
+using JpMusicTagger.Extensions;
 using System.Text;
 using System.Text.RegularExpressions;
 

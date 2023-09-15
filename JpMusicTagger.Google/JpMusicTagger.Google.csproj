@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\JpMusicTagger.Logging\JpMusicTagger.Logging.csproj" />
-    <ProjectReference Include="..\JpMusicTagger.Utils\JpMusicTagger.Utils.csproj" />
+    <ProjectReference Include="..\JpMusicTagger.Extensions\JpMusicTagger.Extensions.csproj" />
   </ItemGroup>
 
 </Project>

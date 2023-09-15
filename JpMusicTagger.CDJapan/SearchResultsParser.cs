@@ -1,4 +1,4 @@
-﻿using JpMusicTagger.Utils;
+﻿using JpMusicTagger.Extensions;
 
 namespace JpMusicTagger.CDJapan;
 

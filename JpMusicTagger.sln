@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.Tags", "JpMus
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.Logging", "JpMusicTagger.Logging\JpMusicTagger.Logging.csproj", "{ED85A9C1-8FA5-4AF4-91EC-BDDF8CDB6026}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JpMusicTagger.Utils", "JpMusicTagger.Utils\JpMusicTagger.Utils.csproj", "{643B6E02-1A6D-44C0-8DE9-8FAA3352CDFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JpMusicTagger.Extensions", "JpMusicTagger.Extensions\JpMusicTagger.Extensions.csproj", "{643B6E02-1A6D-44C0-8DE9-8FAA3352CDFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

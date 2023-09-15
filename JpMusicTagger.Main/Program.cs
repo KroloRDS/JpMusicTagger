@@ -1,43 +1,12 @@
 ﻿using JpMusicTagger.CDJapan;
-using JpMusicTagger.Google;
 using JpMusicTagger.Logging;
 using JpMusicTagger.Main;
 using JpMusicTagger.Tags;
-using JpMusicTagger.Utils;
+using JpMusicTagger.Extensions;
 using JpMusicTagger.VGMDB;
 
-var path = await Init();
+var path = await Initialiser.Init();
 if (path is not null) await Process(path);
-
-static async Task<string?> Init()
-{
-	var consoleArgs = Environment.GetCommandLineArgs();
-	if (CliHelper.Help(consoleArgs)) return null;
-	GoogleApi.Init();
-
-	var entryPath = CliHelper.GetParameter("-p", consoleArgs) ??
-		CliHelper.GetParameter("-path", consoleArgs) ??
-		Directory.GetCurrentDirectory();
-
-	if (!Directory.Exists(entryPath))
-	{
-		await Logger.Log($"Directory {entryPath} does not exist");
-		return null;
-	}
-
-	var logPath = CliHelper.GetParameter("-l", consoleArgs) ??
-		CliHelper.GetParameter("-log", consoleArgs) ??
-		CliHelper.GetParameter("-logPath", consoleArgs) ?? entryPath;
-
-	if (!Directory.Exists(logPath))
-	{
-		await Logger.Log($"Directory {logPath} does not exist");
-		return null;
-	}
-	Logger.SetPath(logPath);
-
-	return entryPath;
-}
 
 static async Task Process(string entryPath)
 {
@@ -72,10 +41,9 @@ static async Task ProcessAlbum(string artist, string path)
 	foreach (var song in songFiles)
 	{
 		var originalFileName = Path.GetFileNameWithoutExtension(song.Path);
-		song.Tags.Comment = song.Tags.Title;
+		song.Tags.Comment = song.Tags.Comment.HasJapaneseChars() ?
+			song.Tags.Title : string.Empty;
 		song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
-		if (song.Tags.Comment.ToLower() == song.Tags.Title.ToLower())
-			song.Tags.Comment = string.Empty;
 		TagManager.Write(song.Path, song.Tags);
 		await FileManager.RenameFile(song.Path, song.Tags);
 	}

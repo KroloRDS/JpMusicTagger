@@ -1,5 +1,5 @@
 ﻿using JpMusicTagger.Tags;
-using JpMusicTagger.Utils;
+using JpMusicTagger.Extensions;
 
 namespace JpMusicTagger.VGMDB;
 

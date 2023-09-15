@@ -1,7 +1,7 @@
 ﻿using JpMusicTagger.Logging;
-using JpMusicTagger.Utils;
 using System.Text.Json;
 using System.Text;
+using JpMusicTagger.Extensions;
 
 namespace JpMusicTagger.Google;
 
@@ -24,16 +24,16 @@ public static class GoogleApi
 
 		var consoleArgs = Environment.GetCommandLineArgs();
 
-		var token = CliHelper.GetParameter("-t", consoleArgs) ??
-			CliHelper.GetParameter("-token", consoleArgs);
+		var token = consoleArgs.GetCliArgValue("-t") ??
+			consoleArgs.GetCliArgValue("-token");
 		if (token is null)
 		{
 			Logger.Log("Missing parameter: -token").Wait();
 			throw new ArgumentNullException("Token");
 		}
 
-		var projectId = CliHelper.GetParameter("-i", consoleArgs) ??
-			CliHelper.GetParameter("-id", consoleArgs);
+		var projectId = consoleArgs.GetCliArgValue("-i") ??
+			consoleArgs.GetCliArgValue("-id");
 		if (projectId is null)
 		{
 			Logger.Log("Missing parameter: -id").Wait();
