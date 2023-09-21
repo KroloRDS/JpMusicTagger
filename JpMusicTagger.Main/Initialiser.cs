@@ -10,7 +10,7 @@ public static class Initialiser
 	{
 		var consoleArgs = Environment.GetCommandLineArgs();
 		if (CliHelp(consoleArgs)) return null;
-		GoogleApi.Init();
+		await GoogleApi.Init();
 
 		var entryPath = consoleArgs.GetCliArgValue("-p") ??
 			consoleArgs.GetCliArgValue("-path") ??
@@ -38,17 +38,18 @@ public static class Initialiser
 
 	private static bool CliHelp(string[] args)
 	{
-		if (!args.Any(x => x == "-h" || x == "-H" || x.ToLower() == "help"))
+		if (!args.Any(x => x.ToLower() == "-h" || x.ToLower() == "help"))
 			return false;
 
 		Console.WriteLine("Parameters:");
 		Console.WriteLine("-H / -h / help => Prints this message");
 		Console.WriteLine("-P / -p / -path => Path to the directory to be parsed. " +
 			"Program expects subdirectories for each artist " +
-			"and sub-subdirectories for each of their albums");
-		Console.WriteLine("-L / -l / -log / -logPath => Log file save path (folder must exist)");
-		Console.WriteLine("-T / -t / -token => REQUIRED: Google Cloud token");
-		Console.WriteLine("-I / -i / -id => REQUIRED: Google Cloud Project ID");
+			"and sub-subdirectories for each of their albums. " +
+			"If not present, current path will be used.");
+		Console.WriteLine("-L / -l / -log / -logPath => " +
+			"Log file save path (folder must exist). " +
+			"If not present, current path will be used.");
 
 		return true;
 	}

@@ -1,7 +1,6 @@
 ﻿using JpMusicTagger.Logging;
 using System.Text.Json;
 using System.Text;
-using JpMusicTagger.Extensions;
 
 namespace JpMusicTagger.Google;
 
@@ -9,72 +8,64 @@ public static class GoogleApi
 {
 	private static readonly string TranslateUrl = "https://translate.googleapis.com/translate_a/single";
 	private static readonly string RomaniseUrl = "https://translation.googleapis.com/v3/projects/";
+	private static readonly string TokenUrl = "https://oauth2.googleapis.com/token";
 
-	private static readonly JsonSerializerOptions JsonOptions = new()
+	private static readonly string CredentialEnvVarName = "GOOGLE_APPLICATION_CREDENTIALS";
+
+	private static readonly HttpClient _generalClient = new();
+	private static HttpClient? _romaniseClient = null;
+
+	public static async Task Init()
 	{
-		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-	};
-	
-	private static readonly HttpClient _translateClient;
-	private static readonly HttpClient _romaniseClient;
+		var credentials = GetCredentials();
+		var token = await GetAccessToken(credentials);
+		var projectId = credentials.ProjectId.ToLower();
 
-	static GoogleApi()
-	{
-		_translateClient = InitTranslateClient();
-
-		var consoleArgs = Environment.GetCommandLineArgs();
-
-		var token = consoleArgs.GetCliArgValue("-t") ??
-			consoleArgs.GetCliArgValue("-token");
-		if (token is null)
-		{
-			Logger.Log("Missing parameter: -token").Wait();
-			throw new ArgumentNullException("Token");
-		}
-
-		var projectId = consoleArgs.GetCliArgValue("-i") ??
-			consoleArgs.GetCliArgValue("-id");
-		if (projectId is null)
-		{
-			Logger.Log("Missing parameter: -id").Wait();
-			throw new ArgumentNullException("ProjectID");
-		}
-
-		_romaniseClient = InitRomaniseClient(token, projectId.ToLower());
+		_romaniseClient = new HttpClient();
+		_romaniseClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+		_romaniseClient.DefaultRequestHeaders.Add("x-goog-user-project", projectId);
+		_romaniseClient.BaseAddress = new Uri(RomaniseUrl + projectId + ":romanizeText");
 	}
 
-	public static void Init()
+	private static Credentials GetCredentials()
 	{
-		//A method to force the initialisation of this class early 
+		var path = Environment.GetEnvironmentVariable(CredentialEnvVarName);
+		if (string.IsNullOrWhiteSpace(path))
+			throw new Exception($"Env variable {CredentialEnvVarName} not set");
+
+		if (!File.Exists(path))
+			throw new Exception($"File {path} does not exist");
+
+		var json = File.ReadAllText(path);
+		var credentials = JsonSerializer.Deserialize<Credentials>(json);
+
+		return credentials ??
+			throw new Exception("Error during serialization of Google credentials json");
 	}
 
-	private static HttpClient InitTranslateClient()
+	private static async Task<string> GetAccessToken(Credentials credentials)
 	{
-		var client = new HttpClient
-		{
-			BaseAddress = new Uri(TranslateUrl)
-		};
-		return client;
-	}
+		var json = JsonSerializer.Serialize(credentials);
+		var content = new StringContent(json,
+			Encoding.UTF8, "application/json");
 
-	private static HttpClient InitRomaniseClient
-		(string? token, string? projectId)
-	{
-		var client = new HttpClient();
-		if (string.IsNullOrWhiteSpace(token) ||
-			string.IsNullOrWhiteSpace(projectId)) return client;
+		var response = await _generalClient.PostAsync(TokenUrl, content);
+		if (!response.IsSuccessStatusCode)
+			throw new Exception($"Google returned error code {response.StatusCode}");
 
-		client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-		client.DefaultRequestHeaders.Add("x-goog-user-project", projectId);
-		client.BaseAddress = new Uri(RomaniseUrl + projectId + ":romanizeText");
+		var result = await response.Content.ReadAsStringAsync();
+		var deserialised = JsonSerializer.Deserialize<TokenResponse>(result);
+		var token = deserialised?.AccessToken;
+		if (string.IsNullOrWhiteSpace(token))
+			throw new Exception("Google returned empty token");
 
-		return client;
+		return token;
 	}
 
 	public static async Task<string> Translate(string text)
 	{
 		var query = "?client=gtx&sl=ja&tl=en&dt=t&q=" + text;
-		var response = await _translateClient.GetAsync(query);
+		var response = await _generalClient.GetAsync(TranslateUrl + query);
 		var result = await response.Content.ReadAsStringAsync();
 		var index = result?.IndexOf(',') - 1 ?? -1;
 
@@ -89,17 +80,24 @@ public static class GoogleApi
 
 	public static async Task<string> Romanise(string text)
 	{
+		if (_romaniseClient is null)
+		{
+			await Logger.Log("Google API client was not properly initialised");
+			return text;
+		}
+
 		var request = BuildRominseTextRequest(text);
+		var response = await _romaniseClient.PostAsync("", request);
+		if (!response.IsSuccessStatusCode)
+		{
+			await Logger.Log($"Google romanisation API returned error code {response.StatusCode}");
+			return text;
+		}
+
+		var json = await response.Content.ReadAsStringAsync();
 		try
 		{
-			var response = await _romaniseClient.PostAsync("", request);
-			if (!response.IsSuccessStatusCode)
-				throw new Exception($"Google returned error code {response.StatusCode}");
-
-			var json = await response.Content.ReadAsStringAsync();
-			var result = JsonSerializer.Deserialize<RomanisationResponse>(
-				json, JsonOptions);
-
+			var result = JsonSerializer.Deserialize<RomanisationResponse>(json);
 			var romanised = result?.Romanizations[0]?.RomanizedText ??
 				throw new Exception("Google response did not follow expected format");
 			
@@ -116,21 +114,10 @@ public static class GoogleApi
 	{
 		var json = JsonSerializer.Serialize(new
 		{
-			Contents = new string[] { text },
-			SourceLanguageCode = "ja"
-		}, JsonOptions);
+			contents = new string[] { text },
+			sourceLanguageCode = "ja"
+		});
 		var content = new StringContent(json, Encoding.UTF8, "application/json");
 		return content;
-	}
-
-	private class RomanisationResponse
-	{
-		public RomanisationResponseEntry[] Romanizations { get; set; } =
-			Array.Empty<RomanisationResponseEntry>();
-	}
-
-	private class RomanisationResponseEntry
-	{
-		public string RomanizedText { get; set; } = string.Empty;
 	}
 }
