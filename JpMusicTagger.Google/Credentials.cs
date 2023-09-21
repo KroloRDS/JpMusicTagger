@@ -20,5 +20,5 @@ public class Credentials
 	public string Type { get; set; } = string.Empty;
 
 	[JsonPropertyName("grant_type")]
-	public string GrantType { get; set; } = string.Empty;
+	public string? GrantType { get; set; }
 }

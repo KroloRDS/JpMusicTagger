@@ -45,6 +45,7 @@ public static class GoogleApi
 
 	private static async Task<string> GetAccessToken(Credentials credentials)
 	{
+		credentials.GrantType ??= "refresh_token";
 		var json = JsonSerializer.Serialize(credentials);
 		var content = new StringContent(json,
 			Encoding.UTF8, "application/json");
