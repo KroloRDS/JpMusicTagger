@@ -47,6 +47,20 @@ public static class StringExtensions
 		return text;
 	}
 
+	public static string ReplaceFilenameInvalidChars(this string text)
+	{
+		text = text.Replace('/', '⧸');
+		text = text.Replace('\\', '⧹');
+		text = text.Replace(":", "꞉");
+		text = text.Replace("*", "⁎");
+		text = text.Replace("?", "？");
+		text = text.Replace("\"", "\'\'");
+		text = text.Replace("<", "(");
+		text = text.Replace(">", ")");
+		text = text.Replace("|", "⏐");
+		return text;
+	}
+
 	public static string ToTitleCase(this string text)
 	{
 		if (string.IsNullOrWhiteSpace(text)) return text;

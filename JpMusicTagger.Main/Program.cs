@@ -13,10 +13,18 @@ static async Task Process(string entryPath)
 	foreach (var artistDir in Directory.GetDirectories(entryPath))
 	{
 		var artist = Path.GetFileNameWithoutExtension(artistDir);
-		foreach (var albumDir in Directory.GetDirectories(artistDir))
+		var albums = Directory.GetDirectories(artistDir);
+		
+		if (GlobalConfig.FormatMode)
 		{
-			await ProcessAlbum(artist, albumDir);
+			foreach (var albumDir in albums)
+				await ProcessAlbumInFormatMode(artist, albumDir);
+
+			return;
 		}
+
+		foreach (var albumDir in albums)
+			await ProcessAlbum(artist, albumDir);
 	}
 }
 
@@ -31,25 +39,53 @@ static async Task ProcessAlbum(string artist, string path)
 		return;
 	}
 
-	var songFiles = DirectoryMatcher.Match(songs, path);
+	var songFiles = DirectoryManager.JoinTagsAndPaths(songs, path);
 	if (songFiles is null || !songFiles.Any())
 	{
 		await Logger.Log("Album data mismatch", artist, album);
 		return;
 	}
 
-	foreach (var song in songFiles)
+	foreach (var song in songFiles) await ProcessSong(song);
+
+	await DirectoryManager.RenameFolder(path, songs.First().Album);
+	Console.WriteLine($"Done processing {artist}/{album}");
+}
+
+static async Task ProcessAlbumInFormatMode(string artist, string path)
+{
+	var filePaths = DirectoryManager.GetAudioFiles(path);
+	var songs = filePaths.Select(x => new SongFile
 	{
-		var originalFileName = Path.GetFileNameWithoutExtension(song.Path);
-		song.Tags.Comment = song.Tags.Comment.HasJapaneseChars() ?
-			song.Tags.Title : string.Empty;
-		song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
-		TagManager.Write(song.Path, song.Tags);
-		await FileManager.RenameFile(song.Path, song.Tags);
+		Path = x,
+		Tags = TagManager.Get(x)
+	});
+
+	var album = Path.GetFileNameWithoutExtension(path);
+	foreach (var song in songs)
+	{
+		if (string.IsNullOrWhiteSpace(song.Tags.Album.Artist))
+			song.Tags.Album.Artist = artist;
+
+		if (string.IsNullOrWhiteSpace(song.Tags.Album.Name))
+			song.Tags.Album.Artist = album;
+
+		if (string.IsNullOrWhiteSpace(song.Tags.Title))
+			FileManager.GetTitleWithoutTrackNumber(song.Path);
 	}
 
-	await FileManager.RenameFolder(path, songs.First().Album);
+	foreach (var song in songs) await ProcessSong(song);
 	Console.WriteLine($"Done processing {artist}/{album}");
+}
+
+static async Task ProcessSong(SongFile song)
+{
+	var originalFileName = Path.GetFileNameWithoutExtension(song.Path);
+	song.Tags.Comment = song.Tags.Title.HasJapaneseChars() ?
+		song.Tags.Title : string.Empty;
+	song.Tags.Title = await TitleFormatter.Format(song.Tags.Title);
+	TagManager.Write(song.Path, song.Tags);
+	await FileManager.RenameFile(song.Path, song.Tags);
 }
 
 static async Task<IEnumerable<SongTags>> GetTags(string album, string artist)

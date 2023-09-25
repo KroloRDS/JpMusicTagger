@@ -10,7 +10,10 @@ public static class Initialiser
 	{
 		var consoleArgs = Environment.GetCommandLineArgs();
 		if (CliHelp(consoleArgs)) return null;
-		await GoogleApi.Init();
+
+		GlobalConfig.FormatMode = consoleArgs.Any(x => x.ToLower() == "-f") ||
+			consoleArgs.Any(x => x.ToLower() == "-format");
+		if (!GlobalConfig.FormatMode) await GoogleApi.Init();
 
 		var entryPath = consoleArgs.GetCliArgValue("-p") ??
 			consoleArgs.GetCliArgValue("-path") ??
@@ -43,13 +46,15 @@ public static class Initialiser
 
 		Console.WriteLine("Parameters:");
 		Console.WriteLine("-H / -h / help => Prints this message");
+		Console.WriteLine("-F / -f / -format =>" +
+			"Format existing titles instead of downloading them from the internet");
 		Console.WriteLine("-P / -p / -path => Path to the directory to be parsed. " +
 			"Program expects subdirectories for each artist " +
 			"and sub-subdirectories for each of their albums. " +
-			"If not present, current path will be used.");
+			"Without this parameter current path will be used.");
 		Console.WriteLine("-L / -l / -log / -logPath => " +
-			"Log file save path (folder must exist). " +
-			"If not present, current path will be used.");
+			"Path where log file will be saved (folder must exist). " +
+			"Without this parameter current path will be used.");
 
 		return true;
 	}
