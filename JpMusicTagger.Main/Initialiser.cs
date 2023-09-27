@@ -1,42 +1,75 @@
-﻿using JpMusicTagger.Extensions;
+﻿using JpMusicTagger.Config;
+using JpMusicTagger.Extensions;
 using JpMusicTagger.Google;
+using JpMusicTagger.Kawazu;
 using JpMusicTagger.Logging;
 
 namespace JpMusicTagger.Main;
 
 public static class Initialiser
 {
+	private class Parameter
+	{
+		public string Name { get; set; } = string.Empty;
+		public string Description { get; set; } = string.Empty;
+	}
+
+	private static readonly Parameter EntryPathParam = new()
+	{
+		Name = "-p",
+		Description = "Path to the directory to be parsed. " +
+				"Program expects subdirectories for each artist " +
+				"and sub-subdirectories for each of their albums. " +
+				"Without this parameter current path will be used."
+	};
+	private static readonly Parameter LogPathParam = new()
+	{
+		Name = "-l",
+		Description = "Path where log file will be saved. " +
+				"Without this parameter current path will be used."
+	};
+	private static readonly Parameter FormatParam = new()
+	{
+		Name = "-f",
+		Description = "Only format existing titles " +
+				"instead of downloading them from the internet."
+	};
+	private static readonly Parameter KawazuDictionaryParam = new()
+	{
+		Name = "-k",
+		Description = "Path containing Kawazu dictionary files. " +
+				"Without this parameter current path will be used."
+	};
+	private static readonly Parameter GoogleApiCredentialsParam = new()
+	{
+		Name = "-g",
+		Description = "Path to json containing Google API refresh token."
+	};
+
+	private static readonly IEnumerable<Parameter> Parameters = new[]
+	{
+		EntryPathParam,
+		LogPathParam,
+		FormatParam,
+		KawazuDictionaryParam,
+		GoogleApiCredentialsParam
+	};
+
 	public static async Task<string?> Init()
 	{
 		var consoleArgs = Environment.GetCommandLineArgs();
 		if (CliHelp(consoleArgs)) return null;
 
-		GlobalConfig.FormatMode = consoleArgs.Any(x => x.ToLower() == "-f") ||
-			consoleArgs.Any(x => x.ToLower() == "-format");
-		if (!GlobalConfig.FormatMode) await GoogleApi.Init();
+		GlobalConfig.FormatMode = consoleArgs.Any(
+			x => x.ToLower() == FormatParam.Name);
 
-		var entryPath = consoleArgs.GetCliArgValue("-p") ??
-			consoleArgs.GetCliArgValue("-path") ??
-			Directory.GetCurrentDirectory();
-
-		if (!Directory.Exists(entryPath))
+		if (!await InitRomanisationApis(consoleArgs))
 		{
-			await Logger.Log($"Directory {entryPath} does not exist");
+			await Logger.Log("No valid romanisation API");
 			return null;
 		}
 
-		var logPath = consoleArgs.GetCliArgValue("-l") ??
-			consoleArgs.GetCliArgValue("-log") ??
-			consoleArgs.GetCliArgValue("-logPath") ?? entryPath;
-
-		if (!Directory.Exists(logPath))
-		{
-			await Logger.Log($"Directory {logPath} does not exist");
-			return null;
-		}
-		Logger.SetPath(logPath);
-
-		return entryPath;
+		return await InitPaths(consoleArgs);
 	}
 
 	private static bool CliHelp(string[] args)
@@ -46,16 +79,62 @@ public static class Initialiser
 
 		Console.WriteLine("Parameters:");
 		Console.WriteLine("-H / -h / help => Prints this message");
-		Console.WriteLine("-F / -f / -format =>" +
-			"Format existing titles instead of downloading them from the internet");
-		Console.WriteLine("-P / -p / -path => Path to the directory to be parsed. " +
-			"Program expects subdirectories for each artist " +
-			"and sub-subdirectories for each of their albums. " +
-			"Without this parameter current path will be used.");
-		Console.WriteLine("-L / -l / -log / -logPath => " +
-			"Path where log file will be saved (folder must exist). " +
-			"Without this parameter current path will be used.");
+		foreach (var parameter in Parameters)
+		{
+			Console.WriteLine($"{parameter.Name.ToUpper()} / " +
+				$"{parameter.Name.ToLower()} => " +
+				$"{parameter.Description}");
+		}
 
 		return true;
+	}
+
+	private static async Task<bool> InitRomanisationApis(
+		string[] consoleArgs)
+	{
+		if (consoleArgs.Any(x => x.ToLower() == GoogleApiCredentialsParam.Name))
+		{
+			var googlePath = consoleArgs.GetCliArgValue(GoogleApiCredentialsParam.Name);
+			try
+			{
+				await GoogleApi.Init(googlePath);
+			}
+			catch (Exception ex)
+			{
+				await Logger.Log(ex.ToString());
+			}
+		}
+
+		var kawazuPath = consoleArgs.GetCliArgValue(KawazuDictionaryParam.Name) ??
+			Directory.GetCurrentDirectory();
+
+        if (File.Exists(Path.Combine(kawazuPath, "IpaDic", "char.bin")))
+			KawazuApi.Init(kawazuPath);
+
+		return GlobalConfig.UseGoogleRomanisation ||
+			GlobalConfig.UseKawazuRomanisation;
+	}
+
+	private static async Task<string?> InitPaths(string[] consoleArgs)
+	{
+		var entryPath = consoleArgs.GetCliArgValue(EntryPathParam.Name) ??
+			Directory.GetCurrentDirectory();
+
+		if (!Directory.Exists(entryPath))
+		{
+			await Logger.Log($"Directory {entryPath} does not exist");
+			return null;
+		}
+
+		var logPath = consoleArgs.GetCliArgValue(LogPathParam.Name) ?? entryPath;
+
+		if (!Directory.Exists(logPath))
+		{
+			await Logger.Log($"Directory {logPath} does not exist");
+			return null;
+		}
+		Logger.SetPath(logPath);
+
+		return entryPath;
 	}
 }

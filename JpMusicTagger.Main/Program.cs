@@ -1,8 +1,9 @@
 ﻿using JpMusicTagger.CDJapan;
+using JpMusicTagger.Config;
+using JpMusicTagger.Extensions;
 using JpMusicTagger.Logging;
 using JpMusicTagger.Main;
 using JpMusicTagger.Tags;
-using JpMusicTagger.Extensions;
 using JpMusicTagger.VGMDB;
 
 var path = await Initialiser.Init();
@@ -36,6 +37,7 @@ static async Task ProcessAlbum(string artist, string path)
 	if (songs is null || !songs.Any())
 	{
 		await Logger.Log("Failed to get album data", artist, album);
+		await ProcessAlbumInFormatMode(artist, path, album);
 		return;
 	}
 
@@ -52,8 +54,10 @@ static async Task ProcessAlbum(string artist, string path)
 	Console.WriteLine($"Done processing {artist}/{album}");
 }
 
-static async Task ProcessAlbumInFormatMode(string artist, string path)
+static async Task ProcessAlbumInFormatMode(string artist, string path,
+	string? album = null)
 {
+	album ??= Path.GetFileNameWithoutExtension(path);
 	var filePaths = DirectoryManager.GetAudioFiles(path);
 	var songs = filePaths.Select(x => new SongFile
 	{
@@ -61,7 +65,6 @@ static async Task ProcessAlbumInFormatMode(string artist, string path)
 		Tags = TagManager.Get(x)
 	});
 
-	var album = Path.GetFileNameWithoutExtension(path);
 	foreach (var song in songs)
 	{
 		if (string.IsNullOrWhiteSpace(song.Tags.Album.Artist))

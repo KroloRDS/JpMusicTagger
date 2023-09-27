@@ -1,6 +1,7 @@
-﻿using JpMusicTagger.Logging;
-using System.Text.Json;
+﻿using JpMusicTagger.Config;
+using JpMusicTagger.Logging;
 using System.Text;
+using System.Text.Json;
 
 namespace JpMusicTagger.Google;
 
@@ -10,14 +11,12 @@ public static class GoogleApi
 	private static readonly string RomaniseUrl = "https://translation.googleapis.com/v3/projects/";
 	private static readonly string TokenUrl = "https://oauth2.googleapis.com/token";
 
-	private static readonly string CredentialEnvVarName = "GOOGLE_APPLICATION_CREDENTIALS";
-
 	private static readonly HttpClient _generalClient = new();
 	private static HttpClient? _romaniseClient = null;
 
-	public static async Task Init()
+	public static async Task Init(string? credentialsJsonPath)
 	{
-		var credentials = GetCredentials();
+		var credentials = GetCredentials(credentialsJsonPath);
 		var token = await GetAccessToken(credentials);
 		var projectId = credentials.ProjectId.ToLower();
 
@@ -25,18 +24,15 @@ public static class GoogleApi
 		_romaniseClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 		_romaniseClient.DefaultRequestHeaders.Add("x-goog-user-project", projectId);
 		_romaniseClient.BaseAddress = new Uri(RomaniseUrl + projectId + ":romanizeText");
+		GlobalConfig.UseGoogleRomanisation = true;
 	}
 
-	private static Credentials GetCredentials()
+	private static Credentials GetCredentials(string? credentialsJsonPath)
 	{
-		var path = Environment.GetEnvironmentVariable(CredentialEnvVarName);
-		if (string.IsNullOrWhiteSpace(path))
-			throw new Exception($"Env variable {CredentialEnvVarName} not set");
+		if (!File.Exists(credentialsJsonPath))
+			throw new Exception($"File {credentialsJsonPath} does not exist");
 
-		if (!File.Exists(path))
-			throw new Exception($"File {path} does not exist");
-
-		var json = File.ReadAllText(path);
+		var json = File.ReadAllText(credentialsJsonPath);
 		var credentials = JsonSerializer.Deserialize<Credentials>(json);
 
 		return credentials ??

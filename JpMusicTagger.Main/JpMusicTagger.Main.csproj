@@ -10,7 +10,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\JpMusicTagger.CDJapan\JpMusicTagger.CDJapan.csproj" />
+    <ProjectReference Include="..\JpMusicTagger.Config\JpMusicTagger.Config.csproj" />
     <ProjectReference Include="..\JpMusicTagger.Extensions\JpMusicTagger.Extensions.csproj" />
+    <ProjectReference Include="..\JpMusicTagger.Kawazu\JpMusicTagger.Kawazu.csproj" />
     <ProjectReference Include="..\JpMusicTagger.Logging\JpMusicTagger.Logging.csproj" />
     <ProjectReference Include="..\JpMusicTagger.Google\JpMusicTagger.Google.csproj" />
     <ProjectReference Include="..\JpMusicTagger.SongMetadata\JpMusicTagger.Tags.csproj" />

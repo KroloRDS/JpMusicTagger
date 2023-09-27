@@ -1,6 +1,8 @@
-﻿using JpMusicTagger.Google;
-using JpMusicTagger.Logging;
+﻿using JpMusicTagger.Config;
+using JpMusicTagger.Google;
 using JpMusicTagger.Extensions;
+using JpMusicTagger.Kawazu;
+using JpMusicTagger.Logging;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -16,6 +18,8 @@ public static partial class TitleFormatter
 
 	public static async Task<string> Format(string text)
 	{
+		var input = text;
+
 		text = ReplaceSymbols(text);
 		text = text.Trim();
 		text = await Romanise(text);
@@ -25,6 +29,8 @@ public static partial class TitleFormatter
 		text = MultipleSpaces().Replace(text, " ");
 		text = MultipleBangs().Replace(text, "!");
 		text = text.Trim();
+
+		await Logger.Log($"Formatted '{input}' to '{text}'");
 		return text;
 	}
 
@@ -58,19 +64,22 @@ public static partial class TitleFormatter
 		return type switch
 		{
 			TextType.Katakana => await GoogleApi.Translate(text),
-			TextType.Kanji => await GoogleApiRomanise(text),
+			TextType.Kanji => await ConvertKanji(text),
 			_ => text,
 		};
 	}
 
-	private static async Task<string> GoogleApiRomanise(string text)
+	private static async Task<string> ConvertKanji(string text)
 	{
-		var romanised = await GoogleApi.Romanise(text);
-		if (romanised.ToCharArray().Any(x => x.Type() == TextType.Kanji))
-		{
-			await Logger.Log($"Text {text} was not romanised");
-		}
-		return romanised;
+		text = GlobalConfig.UseGoogleRomanisation ?
+			await GoogleApi.Romanise(text) : text;
+
+		text = text.ToCharArray().Any(
+			x => x.Type() == TextType.Kanji) &&
+			GlobalConfig.UseKawazuRomanisation ?
+			await KawazuApi.Romanise(text) : text;
+
+		return text;
 	}
 
 	private static string ReplaceSymbols(string text)
