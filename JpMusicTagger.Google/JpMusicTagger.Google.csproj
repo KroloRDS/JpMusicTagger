@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\JpMusicTagger.Config\JpMusicTagger.Config.csproj" />
     <ProjectReference Include="..\JpMusicTagger.Logging\JpMusicTagger.Logging.csproj" />
     <ProjectReference Include="..\JpMusicTagger.Extensions\JpMusicTagger.Extensions.csproj" />
   </ItemGroup>
