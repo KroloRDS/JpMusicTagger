@@ -108,7 +108,7 @@ public static class Initialiser
 		var kawazuPath = consoleArgs.GetCliArgValue(KawazuDictionaryParam.Name) ??
 			Directory.GetCurrentDirectory();
 
-        if (File.Exists(Path.Combine(kawazuPath, "IpaDic", "char.bin")))
+        if (File.Exists(Path.Combine(kawazuPath, "char.bin")))
 			KawazuApi.Init(kawazuPath);
 
 		return GlobalConfig.UseGoogleRomanisation ||
